@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+logs/
+data/
+Output/
+*.xlsx
+.env
+.idea/
+*.log

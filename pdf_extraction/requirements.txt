@@ -1,0 +1,14 @@
+# PDF Extraction Pipeline - Dependencies
+
+# Core PDF extraction
+marker-pdf>=1.0.0
+
+# Data validation
+pydantic>=2.0.0
+
+# PDF metadata extraction
+pypdfium2>=4.30.0
+
+# HTTP requests for PubMed API
+requests>=2.32.0
+

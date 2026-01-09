@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Virtual Environment
+venv/
+.venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Project Data (generated at runtime)
+data/
+logs/
+Output/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+.env.local

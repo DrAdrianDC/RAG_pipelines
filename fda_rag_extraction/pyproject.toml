@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "fda-rag-extraction"
+version = "1.0.0"
+description = "Production-ready data extraction pipeline for FDA oncology drug approvals, optimized for RAG systems"
+authors = ["Adrian Domínguez-Castro"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+requests = "2.31.0"
+pandas = "2.1.4"
+beautifulsoup4 = "4.12.2"
+lxml = "4.9.3"
+schedule = "1.2.0"
+openpyxl = "3.1.2"
+aiofiles = "^23.0"
+
+[tool.poetry.group.dev.dependencies]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
