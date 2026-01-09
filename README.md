@@ -94,6 +94,8 @@ Each pipeline has its own detailed README:
 
 ---
 
-## 📝 License
+## 📄 License
 
-MIT License
+MIT License - See [LICENSE](LICENSE) for details.
+
+---
