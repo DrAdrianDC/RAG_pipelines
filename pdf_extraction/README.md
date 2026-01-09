@@ -147,8 +147,9 @@ For testing, use open-access papers from:
 - ~5GB disk for ML models
 - GPU optional (10-20x faster)
 
-## License
+## 📄 License
 
-MIT License
+MIT License - See [LICENSE](LICENSE) for details.
 
+---
 
