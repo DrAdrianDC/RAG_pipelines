@@ -2,18 +2,20 @@
 
 A modular pipeline for extracting text from scientific PDFs and enriching metadata via PubMed API. Designed for RAG (Retrieval-Augmented Generation) systems.
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
----
 
-## Features
+## key Features
 
 - **ML-Based Extraction**: Uses [Marker](https://github.com/VikParuchuri/marker) for high-quality PDF to Markdown conversion
 - **Metadata Enrichment**: Validates and enriches metadata via NCBI PubMed E-utilities API  
 - **Hardware Auto-Detection**: Automatically configures for GPU (CUDA) or CPU
 - **Checkpointing**: Resume interrupted processes without reprocessing
 - **Schema Validation**: Pydantic models ensure data integrity
+
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
+---
 
 ## Quick Start
 
