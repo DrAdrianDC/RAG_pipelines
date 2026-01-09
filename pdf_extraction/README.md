@@ -151,6 +151,4 @@ For testing, use open-access papers from:
 
 MIT License
 
-## Author
 
-Adrian Dominguez Castro
