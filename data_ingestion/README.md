@@ -1,4 +1,4 @@
-# RAG Pipelines
+# Data ingestion for RAG
 
 Production-ready data ingestion pipelines for Retrieval-Augmented Generation (RAG) systems.
 
