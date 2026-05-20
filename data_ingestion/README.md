@@ -1,6 +1,5 @@
 # Data ingestion for RAG
 
-## 📥 Data Ingestion
 
 Document ingestion and preprocessing pipelines for building
 retrieval-ready corpora from heterogeneous data sources.
