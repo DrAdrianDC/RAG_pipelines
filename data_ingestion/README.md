@@ -1,8 +1,20 @@
 # Data ingestion for RAG
 
-Production-ready data ingestion pipelines for Retrieval-Augmented Generation (RAG) systems.
+## 📥 Data Ingestion
 
-Each pipeline extracts, cleans, and transforms domain-specific data into vector-database-ready formats (JSONL).
+Document ingestion and preprocessing pipelines for building
+retrieval-ready corpora from heterogeneous data sources.
+
+Supported workflows include:
+
+* PDF acquisition and normalization
+* OCR-driven text extraction
+* Biomedical document preprocessing
+* Structured JSONL dataset generation
+* Benchmark dataset preparation for retrieval evaluation
+
+These pipelines are designed to separate raw document acquisition
+from downstream experimentation and evaluation workflows.
 
 ---
 
