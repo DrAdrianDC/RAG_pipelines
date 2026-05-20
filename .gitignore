@@ -9,3 +9,17 @@ Output/
 .env
 .idea/
 *.log
+
+# ==========================================
+# FDA Biomarker Dataset & Pipelines
+# ==========================================
+# Mantener el PDF original y extracciones crudas en Markdown
+!datasets/fda_biomarkers/raw/*.pdf
+!datasets/fda_biomarkers/raw/*.md
+
+# Ignorar los 597 archivos JSON individuales e intermedios
+datasets/fda_biomarkers/processed/*.json
+
+# Mantener los JSON globales consolidados si lo deseas (opcional)
+!datasets/fda_biomarkers/processed/output.json
+!datasets/fda_biomarkers/processed/final_output.json
