@@ -41,18 +41,6 @@ Basic retrieval pipelines using vector similarity search.
 
 ---
 
-# 🏗️ Planned Extensions
-
-This project is actively evolving. Next steps include:
-
-- Advanced chunking strategies (semantic, agentic)
-- Hybrid retrieval (BM25 + vector search)
-- Reranking models
-- Evaluation framework for RAG quality
-- Config-driven pipeline execution
-- Full end-to-end pipeline orchestration
-
----
 
 # ⚙️ Installation
 
