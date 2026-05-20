@@ -26,7 +26,22 @@ The main objective of this repository is to:
 # 🧩 Current Components
 
 ## 📥 Data Ingestion
-Basic pipelines for loading and preparing documents.
+## 📥 Data Ingestion
+
+Modular ingestion pipelines for acquiring, parsing, and preprocessing
+document collections used in retrieval experiments.
+
+Current ingestion workflows include:
+
+* PDF acquisition and document collection
+* OCR-based document extraction
+* Structured text preprocessing
+* JSONL corpus generation
+* Preparation of benchmark-ready datasets for downstream RAG evaluation
+
+The ingestion layer is designed to support reproducible dataset construction
+for chunking, retrieval, and retrieval-quality benchmarking experiments.
+
 
 ## ✂️ Chunking Strategies
 Experiments with different ways of splitting text:
