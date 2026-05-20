@@ -26,7 +26,6 @@ The main objective of this repository is to:
 # 🧩 Current Components
 
 ## 📥 Data Ingestion
-## 📥 Data Ingestion
 
 Modular ingestion pipelines for acquiring, parsing, and preprocessing
 document collections used in retrieval experiments.
