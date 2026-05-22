@@ -24,7 +24,7 @@ The goal is to provide an AI Engineering-oriented environment for benchmarking R
 
 
 
-The `datasets/` folder contains the ingestion-ready corpora used for RAG experimentation and evaluation workflows. These datasets are directly consumed by the pipeline for document ingestion, chunk generation, embedding computation, vector database indexing, retrieval benchmarking, and chunking strategy analysis.
+**The `datasets/` folder contains the ingestion-ready corpora used for RAG experimentation and evaluation workflows. These datasets are directly consumed by the pipeline for document ingestion, chunk generation, embedding computation, vector database indexing, retrieval benchmarking, and chunking strategy analysis.**
 
 The repository is designed so the same datasets can be reused consistently across different experiments involving:
 - chunking strategies,
