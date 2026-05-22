@@ -44,6 +44,31 @@ This project focuses instead on understanding how architectural decisions impact
 
 ---
 
+## Pipeline Architecture
+
+```text
+Data Ingestion
+      ↓
+Document Processing
+      ↓
+Chunking
+      ↓
+Embeddings
+      ↓
+Vector Database
+      ↓
+Retrieval
+      ↓
+Reranking
+      ↓
+Context Construction
+      ↓
+LLM Generation
+      ↓
+Evaluation
+```
+---
+
 # 🧩 Current Components
 
 ## 📥 Data Ingestion
