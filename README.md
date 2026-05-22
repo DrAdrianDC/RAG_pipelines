@@ -6,9 +6,7 @@ A modular exploration of Retrieval-Augmented Generation (RAG) pipelines focused 
 
 This project is built as a **modular experimental framework for RAG systems design**.
 
-Some ingestion modules operate on externally prepared datasets
-(e.g. FDA biomarker JSONL corpora) used for retrieval benchmarking
-and chunking evaluation experiments.
+
 
 ---
 
