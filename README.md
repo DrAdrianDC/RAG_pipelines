@@ -5,7 +5,22 @@
 A modular framework for systematic RAG experimentation and evaluation.
 
 ## Overview
-A modular exploration of Retrieval-Augmented Generation (RAG) pipelines focused on experimenting with different components such as ingestion, chunking, embeddings, and retrieval strategies. This project is built as a **modular experimental framework for RAG systems design**.
+RAG_pipelines is an experimental framework designed to study and optimize Retrieval-Augmented Generation (RAG) systems through reproducible offline evaluation workflows.
+
+The project focuses on modular experimentation across:
+
+- Document ingestion
+- Chunking strategies
+- Embedding models
+- Vector retrieval
+- Reranking pipelines
+- Context construction
+- LLM-based generation
+- Retrieval and generation evaluation
+
+The goal is to provide an AI Engineering-oriented environment for benchmarking RAG design decisions rather than building a single chatbot application.
+
+
 
 The `datasets/` folder contains the ingestion-ready corpora used for RAG experimentation and evaluation workflows. These datasets are directly consumed by the pipeline for document ingestion, chunk generation, embedding computation, vector database indexing, retrieval benchmarking, and chunking strategy analysis.
 
