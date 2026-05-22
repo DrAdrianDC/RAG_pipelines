@@ -4,7 +4,7 @@
 
 A modular framework for systematic RAG experimentation and evaluation.
 
-
+## Overview
 A modular exploration of Retrieval-Augmented Generation (RAG) pipelines focused on experimenting with different components such as ingestion, chunking, embeddings, and retrieval strategies. This project is built as a **modular experimental framework for RAG systems design**.
 
 The `datasets/` folder contains the ingestion-ready corpora used for RAG experimentation and evaluation workflows. These datasets are directly consumed by the pipeline for document ingestion, chunk generation, embedding computation, vector database indexing, retrieval benchmarking, and chunking strategy analysis.
