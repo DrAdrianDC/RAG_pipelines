@@ -42,19 +42,19 @@ The ingestion layer is designed to support reproducible dataset construction
 for chunking, retrieval, and retrieval-quality benchmarking experiments.
 
 
-## ✂️ Chunking Strategies
+#### ✂️ Chunking Strategies
 Experiments with different ways of splitting text:
 - Fixed-size chunking
 - Recursive splitting
 - (More strategies in progress)
 
-## 🔢 Embeddings
+#### 🔢 Embeddings
 Interface for testing different embedding models.
 
-## 🧱 Vector Storage
+#### 🧱 Vector Storage
 Initial integrations with vector databases for similarity search.
 
-## 🔍 Retrieval
+#### 🔍 Retrieval
 Basic retrieval pipelines using vector similarity search.
 
 ---
