@@ -98,7 +98,7 @@ Experiments with different ways of splitting text:
 #### 🔢 Embeddings
 Interface for testing different embedding models.
 
-#### 🧱 Vector Storage
+#### 🧱 Vector Database
 Initial integrations with vector databases for similarity search.
 
 #### 🔍 Retrieval
