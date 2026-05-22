@@ -2,9 +2,7 @@
 
 # 📚 RAG Pipelines
 
-A modular exploration of Retrieval-Augmented Generation (RAG) pipelines focused on experimenting with different components such as ingestion, chunking, embeddings, and retrieval strategies.
-
-This project is built as a **modular experimental framework for RAG systems design**.
+A modular exploration of Retrieval-Augmented Generation (RAG) pipelines focused on experimenting with different components such as ingestion, chunking, embeddings, and retrieval strategies. This project is built as a **modular experimental framework for RAG systems design**.
 
 
 
