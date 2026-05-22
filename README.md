@@ -18,6 +18,8 @@ The project focuses on modular experimentation across:
 - LLM-based generation
 - Retrieval and generation evaluation
 
+## Goal 
+
 The goal is to provide an AI Engineering-oriented environment for benchmarking RAG design decisions rather than building a single chatbot application.
 
 
@@ -34,14 +36,11 @@ The repository is designed so the same datasets can be reused consistently acros
 
 ---
 
-# 🎯 Goal
+## Research Motivation
 
-The main objective of this repository is to:
+Most RAG repositories focus on building end-user applications.
 
-- Understand how different RAG components affect performance
-- Experiment with chunking and retrieval strategies
-- Compare embeddings and vector database options
-- Build a foundation for production-ready RAG systems
+This project focuses instead on understanding how architectural decisions impact retrieval quality, context relevance, and downstream generation performance through systematic experimentation and evaluation.
 
 ---
 
