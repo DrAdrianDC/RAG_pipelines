@@ -78,20 +78,13 @@ Tests: `pytest vectorstores/tests/ -v`
 
 ### Retrieval (`retrieval/`)
 
-Dense retriever built on top of the vector store and embedding layers.
+Two-stage retrieval pipeline built on top of `vectorstores/` and `embeddings/`:
 
-### Evaluation (`evaluation/`)
+- `DenseRetriever` — dependency-injection wrapper around any `(query, k) → list[dict]` function
+- `build_dense_retriever` — factory that wires a ChromaDB collection into a retriever in one call
+- `RerankedRetriever` — cross-encoder reranking on top of dense retrieval (`cross-encoder/ms-marco-MiniLM-L-6-v2`, CPU, no API key)
 
-Retrieval quality metrics (Recall@K, MRR, NDCG) and end-to-end generation metrics.
-
-### Experiments (`experiments/`)
-
-Runnable benchmarks that wire all components together:
-
-- `experiments/chunking_benchmark/` — compares all 8 chunking strategies on retrieval quality
-- `experiments/embedding_benchmark/` — compares embedding models on the same retrieval task
-
-Results (CSV, JSON, plots) are gitignored and regenerated locally.
+Tests: `pytest retrieval/tests/ -v` (no API keys, no model weights loaded)
 
 ---
 
@@ -130,7 +123,7 @@ pytest embeddings/tests/ -v
 pytest vectorstores/tests/ -v
 
 # Full suite
-pytest chunking/tests/ embeddings/tests/ vectorstores/tests/ -v
+pytest chunking/tests/ embeddings/tests/ vectorstores/tests/ retrieval/tests/ -v
 ```
 
 ---
@@ -139,13 +132,11 @@ pytest chunking/tests/ embeddings/tests/ vectorstores/tests/ -v
 
 Components already built locally, pending publication:
 
-- **Retrieval** — dense retriever pipeline on top of ChromaDB + embeddings
 - **Evaluation** — Recall@K, MRR, NDCG metrics and end-to-end generation evaluation
 - **Experiments** — runnable chunking and embedding benchmarks with result artifacts (CSV, plots)
 
 Components planned:
 
-- **Reranking** — cross-encoder reranking layer (e.g. `cross-encoder/ms-marco-MiniLM-L-6-v2`) on top of dense retrieval
 - **Context Construction** — strategies for assembling the final context window from retrieved chunks
 - **LLM Generation** — generation layer with prompt templates and LLM judge evaluation (Gemini / Groq)
 - **End-to-end benchmark** — full pipeline evaluation combining retrieval quality and generation quality metrics
