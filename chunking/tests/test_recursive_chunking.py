@@ -15,8 +15,8 @@ from __future__ import annotations
 
 import pytest
 
-from chunking.config import STRATEGY_CONFIGS
-from chunking.recursive_chunking import RecursiveChunker, build_recursive_512
+from chunking.config import SAFE_CHUNK_TOKENS, STRATEGY_CONFIGS
+from chunking.recursive_chunking import RecursiveChunker, build_recursive_192, build_recursive_512
 from chunking.utils import count_tokens
 from chunking.tests.conftest import assert_valid_chunk_schema
 
@@ -249,6 +249,18 @@ class TestOverlapFractionValidation:
 # ---------------------------------------------------------------------------
 
 class TestFactoryBuilder:
+    def test_build_recursive_192_name(self):
+        assert build_recursive_192().name == "recursive_192"
+
+    def test_build_recursive_192_chunk_size_is_safe_chunk_tokens(self):
+        assert build_recursive_192().chunk_size == SAFE_CHUNK_TOKENS
+
+    def test_build_recursive_192_matches_config(self):
+        cfg = STRATEGY_CONFIGS["recursive_192"]
+        chunker = build_recursive_192()
+        assert chunker.chunk_size == cfg["chunk_size"]
+        assert chunker.overlap_fraction == cfg["overlap_fraction"]
+
     def test_build_recursive_512_name(self):
         assert build_recursive_512().name == "recursive_512"
 

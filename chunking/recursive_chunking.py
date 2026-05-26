@@ -231,8 +231,28 @@ class RecursiveChunker(BaseChunker):
 # Pre-built instance matching the benchmark configuration
 # ---------------------------------------------------------------------------
 
+def build_recursive_192() -> RecursiveChunker:
+    """Model-aligned strategy: recursive splitting at 192 tokens, 10 % token-level overlap.
+
+    192 tiktoken tokens ≈ 249 WordPiece tokens — fits within all-MiniLM-L6-v2's
+    256-token context window with a 7-token safety margin.  This is the
+    recommended recursive strategy when using all-MiniLM-L6-v2.
+    """
+    cfg = STRATEGY_CONFIGS["recursive_192"]
+    chunker = RecursiveChunker(
+        chunk_size=cfg["chunk_size"],
+        overlap_fraction=cfg["overlap_fraction"],
+    )
+    chunker.name = "recursive_192"
+    return chunker
+
+
 def build_recursive_512() -> RecursiveChunker:
-    """Strategy 3: recursive splitting at 512 tokens, 10 % token-level overlap."""
+    """Legacy strategy: recursive splitting at 512 tokens, 10 % token-level overlap.
+
+    Chunks exceed the all-MiniLM-L6-v2 context window (256 WordPiece tokens).
+    Kept for historical comparison only — use ``build_recursive_192`` instead.
+    """
     cfg = STRATEGY_CONFIGS["recursive_512"]
     chunker = RecursiveChunker(
         chunk_size=cfg["chunk_size"],

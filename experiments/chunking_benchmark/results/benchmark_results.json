@@ -1,297 +1,297 @@
 [
   {
-    "strategy": "fixed_512",
-    "description": "Fixed-size 512 tokens, 10 % overlap, word-boundary-aware",
-    "n_chunks": 1683,
-    "avg_tokens": 259.7,
-    "min_tokens": 27,
-    "max_tokens": 384,
-    "adaptive_k": 8,
-    "k_mode": "adaptive",
-    "structural_precision_ceiling": 0.125,
-    "doc_precision": 0.08678571428571427,
+    "strategy": "fixed_192",
+    "description": "Fixed-size 192 tokens, 10 % overlap, word-boundary-aware [model-aligned: fits all-MiniLM-L6-v2 256-token window]",
+    "n_chunks": 4113,
+    "avg_tokens": 107.5,
+    "min_tokens": 11,
+    "max_tokens": 177,
+    "adaptive_k": 5,
+    "k_mode": "fixed",
+    "structural_precision_ceiling": 0.2,
+    "doc_precision": 0.14216666666666666,
     "section_precision": 0.0,
-    "doc_recall": 0.5,
+    "doc_recall": 0.43,
     "section_recall": 0.0,
-    "doc_f1": 0.14628571428571427,
+    "doc_f1": 0.20433333333333334,
     "section_f1": 0.0,
-    "doc_hit_at_k": 0.5,
+    "doc_hit_at_k": 0.43,
     "section_hit_at_k": 0.0,
-    "mrr": 0.2842857142857143,
-    "ndcg_at_k": 0.4707105269509098,
-    "context_recall": 0.37382052477807565,
-    "context_recall_unfiltered": 0.7657872969836064,
-    "section_keyword_coverage": 0.43,
-    "elapsed_seconds": 2.5,
+    "mrr": 0.3221666666666667,
+    "ndcg_at_k": 0.5209776450605486,
+    "context_recall": 0.20659145187513311,
+    "context_recall_unfiltered": 0.5105579996199655,
+    "section_keyword_coverage": 0.2645,
+    "elapsed_seconds": 1.6,
     "query_type_breakdown": {
       "named_brand": {
-        "n": 11.0,
-        "doc_hit_at_k": 0.6363636363636364,
-        "mrr": 0.2606060606060606,
-        "context_recall": 0.4857979798546865
-      },
-      "named_full": {
-        "n": 34.0,
-        "doc_hit_at_k": 0.5588235294117647,
-        "mrr": 0.30203081232492995,
-        "context_recall": 0.4500298815731214
-      },
-      "named_generic": {
-        "n": 22.0,
-        "doc_hit_at_k": 0.5,
-        "mrr": 0.3489177489177489,
-        "context_recall": 0.31937140641622813
-      },
-      "named_section": {
         "n": 11.0,
         "doc_hit_at_k": 0.45454545454545453,
-        "mrr": 0.3181818181818182,
-        "context_recall": 0.3280787525144302
-      },
-      "semantic_hard": {
-        "n": 22.0,
-        "doc_hit_at_k": 0.36363636363636365,
-        "mrr": 0.1871212121212121,
-        "context_recall": 0.27737370486836976
-      }
-    },
-    "chunk_time_s": 1.6,
-    "index_time_s": 85.7
-  },
-  {
-    "strategy": "fixed_1024",
-    "description": "Fixed-size 1024 tokens, 10 % overlap, word-boundary-aware",
-    "n_chunks": 1016,
-    "avg_tokens": 423.7,
-    "min_tokens": 41,
-    "max_tokens": 706,
-    "adaptive_k": 5,
-    "k_mode": "adaptive",
-    "structural_precision_ceiling": 0.2,
-    "doc_precision": 0.10533333333333333,
-    "section_precision": 0.0,
-    "doc_recall": 0.45,
-    "section_recall": 0.0,
-    "doc_f1": 0.16933333333333334,
-    "section_f1": 0.0,
-    "doc_hit_at_k": 0.45,
-    "section_hit_at_k": 0.0,
-    "mrr": 0.29400000000000004,
-    "ndcg_at_k": 0.38655757215104913,
-    "context_recall": 0.3790383220473413,
-    "context_recall_unfiltered": 0.7787369379147022,
-    "section_keyword_coverage": 0.3836666666666666,
-    "elapsed_seconds": 1.7,
-    "query_type_breakdown": {
-      "named_brand": {
-        "n": 11.0,
-        "doc_hit_at_k": 0.6363636363636364,
-        "mrr": 0.3484848484848485,
-        "context_recall": 0.5188836331693474
+        "mrr": 0.3409090909090909,
+        "context_recall": 0.2228303327384521
       },
       "named_full": {
         "n": 34.0,
-        "doc_hit_at_k": 0.5,
-        "mrr": 0.30735294117647055,
-        "context_recall": 0.44350133012134957
-      },
-      "named_generic": {
-        "n": 22.0,
-        "doc_hit_at_k": 0.36363636363636365,
-        "mrr": 0.3068181818181818,
-        "context_recall": 0.2975402017331459
-      },
-      "named_section": {
-        "n": 11.0,
-        "doc_hit_at_k": 0.45454545454545453,
-        "mrr": 0.38181818181818183,
-        "context_recall": 0.34294502187772974
-      },
-      "semantic_hard": {
-        "n": 22.0,
-        "doc_hit_at_k": 0.36363636363636365,
-        "mrr": 0.18939393939393936,
-        "context_recall": 0.30903578804369064
-      }
-    },
-    "chunk_time_s": 1.8,
-    "index_time_s": 45.3
-  },
-  {
-    "strategy": "recursive_512",
-    "description": "Recursive character splitting, 512 tokens, 10 % token-level overlap",
-    "n_chunks": 1133,
-    "avg_tokens": 371.0,
-    "min_tokens": 30,
-    "max_tokens": 552,
-    "adaptive_k": 5,
-    "k_mode": "adaptive",
-    "structural_precision_ceiling": 0.2,
-    "doc_precision": 0.1025,
-    "section_precision": 0.0,
-    "doc_recall": 0.45,
-    "section_recall": 0.0,
-    "doc_f1": 0.1656666666666667,
-    "section_f1": 0.0,
-    "doc_hit_at_k": 0.45,
-    "section_hit_at_k": 0.0,
-    "mrr": 0.29383333333333334,
-    "ndcg_at_k": 0.3815521571615982,
-    "context_recall": 0.36762746496254645,
-    "context_recall_unfiltered": 0.7509500677191706,
-    "section_keyword_coverage": 0.3906666666666666,
-    "elapsed_seconds": 1.7,
-    "query_type_breakdown": {
-      "named_brand": {
-        "n": 11.0,
-        "doc_hit_at_k": 0.5454545454545454,
-        "mrr": 0.2681818181818182,
-        "context_recall": 0.4873865885316267
-      },
-      "named_full": {
-        "n": 34.0,
-        "doc_hit_at_k": 0.5294117647058824,
-        "mrr": 0.2862745098039216,
-        "context_recall": 0.4182255627036851
+        "doc_hit_at_k": 0.4411764705882353,
+        "mrr": 0.3107843137254902,
+        "context_recall": 0.20214544451263264
       },
       "named_generic": {
         "n": 22.0,
         "doc_hit_at_k": 0.4090909090909091,
-        "mrr": 0.3409090909090909,
-        "context_recall": 0.323740992852758
+        "mrr": 0.375,
+        "context_recall": 0.20476093410487162
       },
       "named_section": {
         "n": 11.0,
         "doc_hit_at_k": 0.45454545454545453,
-        "mrr": 0.38181818181818183,
-        "context_recall": 0.32955113094433286
+        "mrr": 0.33636363636363636,
+        "context_recall": 0.17270371517675964
       },
       "semantic_hard": {
         "n": 22.0,
-        "doc_hit_at_k": 0.3181818181818182,
-        "mrr": 0.22727272727272727,
-        "context_recall": 0.2924754821515054
+        "doc_hit_at_k": 0.4090909090909091,
+        "mrr": 0.27045454545454545,
+        "context_recall": 0.2241174998504224
       }
     },
-    "chunk_time_s": 2.4,
-    "index_time_s": 44.8
+    "chunk_time_s": 1.9,
+    "index_time_s": 90.3
   },
   {
-    "strategy": "semantic",
-    "description": "Semantic chunking (Weaviate 4-step), adaptive percentile threshold",
-    "n_chunks": 2584,
-    "avg_tokens": 156.5,
-    "min_tokens": 6,
-    "max_tokens": 2640,
-    "adaptive_k": 13,
-    "k_mode": "adaptive",
-    "structural_precision_ceiling": 0.077,
-    "doc_precision": 0.051069791319791315,
+    "strategy": "fixed_256",
+    "description": "Fixed-size 256 tokens, 10 % overlap, word-boundary-aware [borderline: near all-MiniLM-L6-v2 limit \u2014 prefer fixed_192]",
+    "n_chunks": 3127,
+    "avg_tokens": 140.9,
+    "min_tokens": 13,
+    "max_tokens": 231,
+    "adaptive_k": 5,
+    "k_mode": "fixed",
+    "structural_precision_ceiling": 0.2,
+    "doc_precision": 0.12299999999999998,
     "section_precision": 0.0,
-    "doc_recall": 0.51,
+    "doc_recall": 0.37,
     "section_recall": 0.0,
-    "doc_f1": 0.0922985347985348,
+    "doc_f1": 0.17566666666666667,
     "section_f1": 0.0,
-    "doc_hit_at_k": 0.51,
+    "doc_hit_at_k": 0.37,
     "section_hit_at_k": 0.0,
-    "mrr": 0.32584004884004886,
-    "ndcg_at_k": 0.5216153320763222,
-    "context_recall": 0.3148090698801495,
-    "context_recall_unfiltered": 0.7507187915459501,
-    "section_keyword_coverage": 0.3683333333333333,
-    "elapsed_seconds": 2.1,
+    "mrr": 0.2836666666666667,
+    "ndcg_at_k": 0.4520910489752291,
+    "context_recall": 0.2128731066438169,
+    "context_recall_unfiltered": 0.5518363633960939,
+    "section_keyword_coverage": 0.2678333333333333,
+    "elapsed_seconds": 1.8,
     "query_type_breakdown": {
       "named_brand": {
-        "n": 11.0,
-        "doc_hit_at_k": 0.6363636363636364,
-        "mrr": 0.36616161616161613,
-        "context_recall": 0.43592907823667704
-      },
-      "named_full": {
-        "n": 34.0,
-        "doc_hit_at_k": 0.5,
-        "mrr": 0.27724089635854343,
-        "context_recall": 0.31842385381034755
-      },
-      "named_generic": {
-        "n": 22.0,
-        "doc_hit_at_k": 0.5,
-        "mrr": 0.42121212121212115,
-        "context_recall": 0.30374692521395
-      },
-      "named_section": {
         "n": 11.0,
         "doc_hit_at_k": 0.5454545454545454,
-        "mrr": 0.2675990675990676,
-        "context_recall": 0.22842311844668647
-      },
-      "semantic_hard": {
-        "n": 22.0,
-        "doc_hit_at_k": 0.45454545454545453,
-        "mrr": 0.3145354645354646,
-        "context_recall": 0.3029177018290561
-      }
-    },
-    "chunk_time_s": 183.6,
-    "index_time_s": 71.4
-  },
-  {
-    "strategy": "structure_aware",
-    "description": "Document-based chunking on FDA 21 CFR 201.57 section headers",
-    "n_chunks": 1511,
-    "avg_tokens": 267.3,
-    "min_tokens": 5,
-    "max_tokens": 1033,
-    "adaptive_k": 7,
-    "k_mode": "adaptive",
-    "structural_precision_ceiling": 0.143,
-    "doc_precision": 0.07223809523809523,
-    "section_precision": 0.37628571428571433,
-    "doc_recall": 0.38,
-    "section_recall": 0.5403333333333333,
-    "doc_f1": 0.11935714285714286,
-    "section_f1": 0.3981182706182706,
-    "doc_hit_at_k": 0.38,
-    "section_hit_at_k": 0.5403333333333333,
-    "mrr": 0.26702380952380955,
-    "ndcg_at_k": 0.3924504760986979,
-    "context_recall": 0.2916589227450742,
-    "context_recall_unfiltered": 0.6929123217951265,
-    "section_keyword_coverage": 0.32166666666666666,
-    "elapsed_seconds": 1.9,
-    "query_type_breakdown": {
-      "named_brand": {
-        "n": 11.0,
-        "doc_hit_at_k": 0.36363636363636365,
-        "mrr": 0.25,
-        "context_recall": 0.2696438510391999
+        "mrr": 0.4318181818181818,
+        "context_recall": 0.3288715865692952
       },
       "named_full": {
         "n": 34.0,
-        "doc_hit_at_k": 0.47058823529411764,
-        "mrr": 0.30392156862745096,
-        "context_recall": 0.34407362205708797
+        "doc_hit_at_k": 0.38235294117647056,
+        "mrr": 0.2852941176470588,
+        "context_recall": 0.25730348956296234
       },
       "named_generic": {
         "n": 22.0,
         "doc_hit_at_k": 0.36363636363636365,
-        "mrr": 0.28679653679653677,
-        "context_recall": 0.2841328263435172
+        "mrr": 0.2840909090909091,
+        "context_recall": 0.19078835705640287
       },
       "named_section": {
         "n": 11.0,
         "doc_hit_at_k": 0.45454545454545453,
-        "mrr": 0.37878787878787884,
-        "context_recall": 0.2944472025199325
+        "mrr": 0.3939393939393939,
+        "context_recall": 0.14114741417456295
       },
       "semantic_hard": {
         "n": 22.0,
         "doc_hit_at_k": 0.22727272727272727,
-        "mrr": 0.14285714285714285,
-        "context_recall": 0.22779387981175434
+        "mrr": 0.15151515151515152,
+        "context_recall": 0.1441563252644393
       }
     },
     "chunk_time_s": 1.9,
-    "index_time_s": 54.1
+    "index_time_s": 109.8
+  },
+  {
+    "strategy": "recursive_192",
+    "description": "Recursive character splitting, 192 tokens, 10 % token-level overlap [model-aligned: fits all-MiniLM-L6-v2 256-token window]",
+    "n_chunks": 2707,
+    "avg_tokens": 157.3,
+    "min_tokens": 11,
+    "max_tokens": 208,
+    "adaptive_k": 5,
+    "k_mode": "fixed",
+    "structural_precision_ceiling": 0.2,
+    "doc_precision": 0.13216666666666665,
+    "section_precision": 0.0,
+    "doc_recall": 0.4,
+    "section_recall": 0.0,
+    "doc_f1": 0.19166666666666668,
+    "section_f1": 0.0,
+    "doc_hit_at_k": 0.4,
+    "section_hit_at_k": 0.0,
+    "mrr": 0.29683333333333334,
+    "ndcg_at_k": 0.4837505827376127,
+    "context_recall": 0.25838700134359177,
+    "context_recall_unfiltered": 0.5922027946213254,
+    "section_keyword_coverage": 0.288,
+    "elapsed_seconds": 2.9,
+    "query_type_breakdown": {
+      "named_brand": {
+        "n": 11.0,
+        "doc_hit_at_k": 0.5454545454545454,
+        "mrr": 0.4318181818181818,
+        "context_recall": 0.33062006240234254
+      },
+      "named_full": {
+        "n": 34.0,
+        "doc_hit_at_k": 0.38235294117647056,
+        "mrr": 0.25441176470588234,
+        "context_recall": 0.2902785738286569
+      },
+      "named_generic": {
+        "n": 22.0,
+        "doc_hit_at_k": 0.45454545454545453,
+        "mrr": 0.34469696969696967,
+        "context_recall": 0.24221574647913294
+      },
+      "named_section": {
+        "n": 11.0,
+        "doc_hit_at_k": 0.36363636363636365,
+        "mrr": 0.29090909090909095,
+        "context_recall": 0.15537698325035115
+      },
+      "semantic_hard": {
+        "n": 22.0,
+        "doc_hit_at_k": 0.3181818181818182,
+        "mrr": 0.25,
+        "context_recall": 0.24065975906655826
+      }
+    },
+    "chunk_time_s": 2.6,
+    "index_time_s": 140.0
+  },
+  {
+    "strategy": "semantic",
+    "description": "Semantic chunking (Weaviate 4-step), adaptive percentile threshold [model-aligned: max_chunk_tokens capped at 192]",
+    "n_chunks": 3315,
+    "avg_tokens": 121.7,
+    "min_tokens": 6,
+    "max_tokens": 192,
+    "adaptive_k": 5,
+    "k_mode": "fixed",
+    "structural_precision_ceiling": 0.2,
+    "doc_precision": 0.12516666666666665,
+    "section_precision": 0.0,
+    "doc_recall": 0.43,
+    "section_recall": 0.0,
+    "doc_f1": 0.18733333333333335,
+    "section_f1": 0.0,
+    "doc_hit_at_k": 0.43,
+    "section_hit_at_k": 0.0,
+    "mrr": 0.29983333333333334,
+    "ndcg_at_k": 0.4422866813513084,
+    "context_recall": 0.20371595359172331,
+    "context_recall_unfiltered": 0.5322268683383622,
+    "section_keyword_coverage": 0.25916666666666666,
+    "elapsed_seconds": 2.0,
+    "query_type_breakdown": {
+      "named_brand": {
+        "n": 11.0,
+        "doc_hit_at_k": 0.5454545454545454,
+        "mrr": 0.41666666666666663,
+        "context_recall": 0.30827480250962697
+      },
+      "named_full": {
+        "n": 34.0,
+        "doc_hit_at_k": 0.4117647058823529,
+        "mrr": 0.2534313725490196,
+        "context_recall": 0.23042139518304933
+      },
+      "named_generic": {
+        "n": 22.0,
+        "doc_hit_at_k": 0.5,
+        "mrr": 0.3878787878787879,
+        "context_recall": 0.20860286142336193
+      },
+      "named_section": {
+        "n": 11.0,
+        "doc_hit_at_k": 0.36363636363636365,
+        "mrr": 0.25757575757575757,
+        "context_recall": 0.08817816405791155
+      },
+      "semantic_hard": {
+        "n": 22.0,
+        "doc_hit_at_k": 0.36363636363636365,
+        "mrr": 0.2462121212121212,
+        "context_recall": 0.16304646997235317
+      }
+    },
+    "chunk_time_s": 218.1,
+    "index_time_s": 132.8
+  },
+  {
+    "strategy": "structure_aware",
+    "description": "Document-based chunking on FDA 21 CFR 201.57 section headers [model-aligned: max_chunk_tokens capped at 192]",
+    "n_chunks": 2991,
+    "avg_tokens": 134.7,
+    "min_tokens": 5,
+    "max_tokens": 202,
+    "adaptive_k": 5,
+    "k_mode": "fixed",
+    "structural_precision_ceiling": 0.2,
+    "doc_precision": 0.12266666666666666,
+    "section_precision": 0.4795,
+    "doc_recall": 0.42,
+    "section_recall": 0.539,
+    "doc_f1": 0.18600000000000003,
+    "section_f1": 0.4586111111111111,
+    "doc_hit_at_k": 0.42,
+    "section_hit_at_k": 0.539,
+    "mrr": 0.3065,
+    "ndcg_at_k": 0.4749052764227376,
+    "context_recall": 0.22136087670164595,
+    "context_recall_unfiltered": 0.5358739299368463,
+    "section_keyword_coverage": 0.2703333333333333,
+    "elapsed_seconds": 2.5,
+    "query_type_breakdown": {
+      "named_brand": {
+        "n": 11.0,
+        "doc_hit_at_k": 0.45454545454545453,
+        "mrr": 0.38636363636363635,
+        "context_recall": 0.26480075841996586
+      },
+      "named_full": {
+        "n": 34.0,
+        "doc_hit_at_k": 0.47058823529411764,
+        "mrr": 0.3107843137254902,
+        "context_recall": 0.2660905857394553
+      },
+      "named_generic": {
+        "n": 22.0,
+        "doc_hit_at_k": 0.36363636363636365,
+        "mrr": 0.3106060606060606,
+        "context_recall": 0.19742796320029649
+      },
+      "named_section": {
+        "n": 11.0,
+        "doc_hit_at_k": 0.45454545454545453,
+        "mrr": 0.32575757575757575,
+        "context_recall": 0.13215816178591566
+      },
+      "semantic_hard": {
+        "n": 22.0,
+        "doc_hit_at_k": 0.36363636363636365,
+        "mrr": 0.2462121212121212,
+        "context_recall": 0.19904747465235878
+      }
+    },
+    "chunk_time_s": 3.2,
+    "index_time_s": 150.7
   }
 ]

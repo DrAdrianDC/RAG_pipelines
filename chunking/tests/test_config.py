@@ -24,6 +24,7 @@ import pytest
 from chunking.config import (
     DATASET_PATH,
     EMBEDDING_MODEL,
+    SAFE_CHUNK_TOKENS,
     STRATEGY_CONFIGS,
 )
 
@@ -33,11 +34,20 @@ from chunking.config import (
 # ---------------------------------------------------------------------------
 
 EXPECTED_STRATEGY_IDS = {
+    # Model-aligned (recommended)
+    "fixed_192",
+    "fixed_256",
+    "recursive_192",
+    "semantic",
+    "structure_aware",
+    # Legacy / oversize
     "fixed_512",
     "fixed_1024",
     "recursive_512",
-    "semantic",
-    "structure_aware",
+    # LangChain cross-validation — model-aligned
+    "lc_fixed_192",
+    "lc_recursive_192",
+    # LangChain cross-validation — legacy
     "lc_fixed_512",
     "lc_fixed_1024",
     "lc_recursive_512",
@@ -65,10 +75,51 @@ class TestStrategyIds:
 
 
 # ---------------------------------------------------------------------------
+# SAFE_CHUNK_TOKENS constant
+# ---------------------------------------------------------------------------
+
+class TestSafeChunkTokens:
+    def test_safe_chunk_tokens_is_positive_int(self):
+        assert isinstance(SAFE_CHUNK_TOKENS, int) and SAFE_CHUNK_TOKENS > 0
+
+    def test_safe_chunk_tokens_below_model_wordpiece_limit(self):
+        """
+        SAFE_CHUNK_TOKENS must stay below 256 / 1.15 ≈ 222 to leave margin for
+        the WordPiece / cl100k token ratio on English biomedical text.
+        """
+        assert SAFE_CHUNK_TOKENS <= 220, (
+            f"SAFE_CHUNK_TOKENS={SAFE_CHUNK_TOKENS} is too close to the 256 WordPiece limit. "
+            "Keep it at or below 220 to avoid truncation."
+        )
+
+    def test_model_aligned_strategies_respect_safe_chunk_tokens(self):
+        """Every model-aligned strategy must have chunk_size <= SAFE_CHUNK_TOKENS."""
+        aligned_ids = {"fixed_192", "fixed_256", "recursive_192"}
+        for sid in aligned_ids:
+            cfg = STRATEGY_CONFIGS[sid]
+            assert cfg["chunk_size"] <= SAFE_CHUNK_TOKENS * 2, (
+                f"'{sid}' chunk_size={cfg['chunk_size']} significantly exceeds "
+                f"SAFE_CHUNK_TOKENS={SAFE_CHUNK_TOKENS}."
+            )
+
+    def test_fixed_192_uses_safe_chunk_tokens(self):
+        assert STRATEGY_CONFIGS["fixed_192"]["chunk_size"] == SAFE_CHUNK_TOKENS
+
+    def test_recursive_192_uses_safe_chunk_tokens(self):
+        assert STRATEGY_CONFIGS["recursive_192"]["chunk_size"] == SAFE_CHUNK_TOKENS
+
+    def test_semantic_max_chunk_tokens_respects_safe_chunk_tokens(self):
+        assert STRATEGY_CONFIGS["semantic"]["max_chunk_tokens"] <= SAFE_CHUNK_TOKENS
+
+    def test_structure_aware_max_chunk_tokens_respects_safe_chunk_tokens(self):
+        assert STRATEGY_CONFIGS["structure_aware"]["max_chunk_tokens"] <= SAFE_CHUNK_TOKENS
+
+
+# ---------------------------------------------------------------------------
 # Fixed-size strategies: chunk_size and overlap_fraction
 # ---------------------------------------------------------------------------
 
-FIXED_STRATEGY_IDS = {"fixed_512", "fixed_1024"}
+FIXED_STRATEGY_IDS = {"fixed_192", "fixed_256", "fixed_512", "fixed_1024"}
 
 
 class TestFixedStrategyConfig:
@@ -89,14 +140,27 @@ class TestFixedStrategyConfig:
             "Weaviate recommends 0.10–0.20."
         )
 
+    def test_fixed_192_chunk_size_is_safe_chunk_tokens(self):
+        assert STRATEGY_CONFIGS["fixed_192"]["chunk_size"] == SAFE_CHUNK_TOKENS
+
+    def test_fixed_256_chunk_size_is_256(self):
+        assert STRATEGY_CONFIGS["fixed_256"]["chunk_size"] == 256
+
     def test_fixed_512_chunk_size_is_512(self):
         assert STRATEGY_CONFIGS["fixed_512"]["chunk_size"] == 512
 
     def test_fixed_1024_chunk_size_is_1024(self):
         assert STRATEGY_CONFIGS["fixed_1024"]["chunk_size"] == 1024
 
+    def test_model_aligned_fixed_strategies_same_overlap(self):
+        """Model-aligned fixed strategies share the same overlap fraction."""
+        assert (
+            STRATEGY_CONFIGS["fixed_192"]["overlap_fraction"]
+            == STRATEGY_CONFIGS["fixed_256"]["overlap_fraction"]
+        )
+
     def test_fixed_512_overlap_fraction_matches_fixed_1024(self):
-        """Both fixed strategies should use the same overlap fraction by convention."""
+        """Legacy fixed strategies share the same overlap fraction."""
         assert (
             STRATEGY_CONFIGS["fixed_512"]["overlap_fraction"]
             == STRATEGY_CONFIGS["fixed_1024"]["overlap_fraction"]
@@ -108,16 +172,26 @@ class TestFixedStrategyConfig:
 # ---------------------------------------------------------------------------
 
 class TestRecursiveStrategyConfig:
-    def test_chunk_size_is_512(self):
+    def test_recursive_192_chunk_size_is_safe_chunk_tokens(self):
+        assert STRATEGY_CONFIGS["recursive_192"]["chunk_size"] == SAFE_CHUNK_TOKENS
+
+    def test_recursive_512_chunk_size_is_512(self):
         assert STRATEGY_CONFIGS["recursive_512"]["chunk_size"] == 512
 
-    def test_overlap_fraction_present_and_valid(self):
-        cfg = STRATEGY_CONFIGS["recursive_512"]
+    def test_recursive_192_overlap_fraction_present_and_valid(self):
+        cfg = STRATEGY_CONFIGS["recursive_192"]
         assert "overlap_fraction" in cfg
         assert 0.0 <= cfg["overlap_fraction"] < 0.25
 
+    def test_recursive_192_overlap_matches_fixed_192(self):
+        """Model-aligned recursive and fixed strategies use the same overlap fraction."""
+        assert (
+            STRATEGY_CONFIGS["recursive_192"]["overlap_fraction"]
+            == STRATEGY_CONFIGS["fixed_192"]["overlap_fraction"]
+        )
+
     def test_overlap_fraction_matches_fixed_512(self):
-        """Recursive and fixed 512 use the same overlap fraction for fair comparison."""
+        """Legacy recursive and fixed 512 use the same overlap fraction for fair comparison."""
         assert (
             STRATEGY_CONFIGS["recursive_512"]["overlap_fraction"]
             == STRATEGY_CONFIGS["fixed_512"]["overlap_fraction"]
@@ -158,9 +232,13 @@ class TestSemanticStrategyConfig:
             "max_chunk_tokens must be strictly greater than min_chunk_tokens"
         )
 
-    def test_max_chunk_tokens_reasonable_upper_bound(self):
-        """max_chunk_tokens should not exceed 2× the embedding model's sweet spot."""
-        assert STRATEGY_CONFIGS["semantic"]["max_chunk_tokens"] <= 1024
+    def test_max_chunk_tokens_respects_safe_chunk_tokens(self):
+        """max_chunk_tokens must not exceed SAFE_CHUNK_TOKENS — no chunk escapes the model window."""
+        assert STRATEGY_CONFIGS["semantic"]["max_chunk_tokens"] <= SAFE_CHUNK_TOKENS, (
+            f"semantic max_chunk_tokens={STRATEGY_CONFIGS['semantic']['max_chunk_tokens']} "
+            f"exceeds SAFE_CHUNK_TOKENS={SAFE_CHUNK_TOKENS}. "
+            "Chunks above this limit are silently truncated by all-MiniLM-L6-v2."
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -174,15 +252,22 @@ class TestStructureAwareStrategyConfig:
     def test_max_chunk_tokens_is_positive(self):
         assert STRATEGY_CONFIGS["structure_aware"]["max_chunk_tokens"] > 0
 
-    def test_max_chunk_tokens_is_1024(self):
-        assert STRATEGY_CONFIGS["structure_aware"]["max_chunk_tokens"] == 1024
+    def test_max_chunk_tokens_is_safe_chunk_tokens(self):
+        """structure_aware must sub-split FDA sections at SAFE_CHUNK_TOKENS — no truncation."""
+        assert STRATEGY_CONFIGS["structure_aware"]["max_chunk_tokens"] == SAFE_CHUNK_TOKENS, (
+            f"structure_aware max_chunk_tokens should equal SAFE_CHUNK_TOKENS={SAFE_CHUNK_TOKENS}. "
+            "Larger values cause silent truncation by all-MiniLM-L6-v2."
+        )
 
 
 # ---------------------------------------------------------------------------
 # LangChain cross-validation variants
 # ---------------------------------------------------------------------------
 
-LC_STRATEGY_IDS = {"lc_fixed_512", "lc_fixed_1024", "lc_recursive_512"}
+LC_STRATEGY_IDS = {
+    "lc_fixed_192", "lc_recursive_192",       # model-aligned
+    "lc_fixed_512", "lc_fixed_1024", "lc_recursive_512",  # legacy
+}
 
 
 class TestLangChainStrategyConfig:
@@ -197,6 +282,19 @@ class TestLangChainStrategyConfig:
         cfg = STRATEGY_CONFIGS[strategy_id]
         assert "overlap" in cfg, f"'{strategy_id}' missing 'overlap'"
         assert cfg["overlap"] >= 0
+
+    def test_lc_fixed_192_chunk_size_is_safe_chunk_tokens(self):
+        assert STRATEGY_CONFIGS["lc_fixed_192"]["chunk_size"] == SAFE_CHUNK_TOKENS
+
+    def test_lc_recursive_192_chunk_size_is_safe_chunk_tokens(self):
+        assert STRATEGY_CONFIGS["lc_recursive_192"]["chunk_size"] == SAFE_CHUNK_TOKENS
+
+    def test_lc_fixed_192_overlap_approximately_10_percent(self):
+        cfg = STRATEGY_CONFIGS["lc_fixed_192"]
+        ratio = cfg["overlap"] / cfg["chunk_size"]
+        assert 0.08 <= ratio <= 0.15, (
+            f"lc_fixed_192 overlap ratio={ratio:.2f}, expected ~0.10 (Weaviate: 10–20 %)"
+        )
 
     def test_lc_fixed_512_overlap_approximately_10_percent(self):
         cfg = STRATEGY_CONFIGS["lc_fixed_512"]
@@ -230,6 +328,9 @@ class TestModuleConstants:
             "all-mpnet",
             "BAAI/bge",
             "NeuML/",
+            "pritamdeka/",
+            "microsoft/",
+            "medicalai/",
             "sentence-transformers/",
             "paraphrase-",
         )

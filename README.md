@@ -49,18 +49,20 @@ Benchmark-ready corpora consumed by all downstream pipeline stages.
 
 ### Chunking (`chunking/`)
 
-8 chunking strategies benchmarked against the same FDA corpus:
+13 chunking strategies — **5 model-aligned** (recommended) + 3 legacy oversize + 5 LangChain cross-validation variants.
 
-| Strategy | Implementation | Tokens |
-|---|---|---|
-| `fixed_512` | Custom word-boundary, token-budget | 512 |
-| `fixed_1024` | Custom word-boundary, token-budget | 1024 |
-| `recursive_512` | Custom Weaviate separator hierarchy | 512 |
-| `semantic` | Adaptive percentile threshold + NLTK | variable |
-| `structure_aware` | FDA 21 CFR section detection | ≤1024 |
-| `lc_fixed_512` | LangChain `TokenTextSplitter` | 512 |
-| `lc_fixed_1024` | LangChain `TokenTextSplitter` | 1024 |
-| `lc_recursive_512` | LangChain `RecursiveCharacterTextSplitter` | 512 |
+All model-aligned strategies respect `SAFE_CHUNK_TOKENS = 192`, ensuring every chunk fits within the `all-MiniLM-L6-v2` context window (256 WordPiece tokens). See [`chunking/README.md`](chunking/README.md) for the full rationale.
+
+| Strategy | Implementation | Max tokens | Status |
+|---|---|---|---|
+| `fixed_192` | Custom word-boundary, token-budget | 192 | **Recommended** |
+| `fixed_256` | Custom word-boundary, token-budget | 256 | Borderline |
+| `recursive_192` | Custom Weaviate separator hierarchy | 192 | **Recommended** |
+| `semantic` | Adaptive percentile threshold + NLTK | ≤192 | **Recommended** |
+| `structure_aware` | FDA 21 CFR section detection | ≤192 | **Recommended** |
+| `fixed_512` / `fixed_1024` / `recursive_512` | Legacy oversize | 512–1024 | Truncated by embedding model |
+| `lc_fixed_192` / `lc_recursive_192` | LangChain cross-validation | 192 | Model-aligned |
+| `lc_fixed_512` / `lc_fixed_1024` / `lc_recursive_512` | LangChain cross-validation | 512–1024 | Legacy |
 
 LangChain variants serve as cross-validation: if custom and LangChain implementations agree on retrieval metrics, the custom code is validated.
 
@@ -97,7 +99,7 @@ Tests: `pytest retrieval/tests/ -v` (no API keys, no model weights loaded)
 
 ### Experiments (`experiments/`)
 
-- **`experiments/chunking_benchmark/`** — Runnable benchmark comparing all 8 chunking strategies. Produces CSV results and 6 publication-ready plots.
+- **`experiments/chunking_benchmark/`** — Runnable benchmark comparing 5 model-aligned chunking strategies (legacy oversize strategies available via `--include-legacy`). Produces CSV/JSON results and 6 publication-ready plots.
 - **`experiments/embedding_benchmark/`** — Compares embedding models with fixed chunking strategy.
 
 ---
@@ -144,43 +146,49 @@ All 262 unit tests use mock models and in-memory ChromaDB — no network access,
 ## Running the Benchmark
 
 ```bash
-# Quick run — 50 queries, adaptive k, no LLM judge
-python -m experiments.chunking_benchmark.run_benchmark --sample 50
+# Default — 5 model-aligned strategies, 100 queries, fixed k=5 (fair comparison)
+python -m experiments.chunking_benchmark.run_benchmark --fixed-k 5 --reset-db
 
-# Full run — all 597 queries, fixed k=5 (fair comparison), Groq LLM judge
+# Include legacy oversize strategies (fixed_512, fixed_1024, recursive_512)
+python -m experiments.chunking_benchmark.run_benchmark --fixed-k 5 --include-legacy --reset-db
+
+# Quick validation — 20 queries, no plots
+python -m experiments.chunking_benchmark.run_benchmark --sample 20 --no-plots
+
+# Full run + Groq LLM judge (requires GROQ_API_KEY in .env)
 python -m experiments.chunking_benchmark.run_benchmark --fixed-k 5 --llm-judge --llm-provider groq
 
 # Embedding benchmark — compare MiniLM, BGE, PubMedBERT
 python -m experiments.embedding_benchmark.run_benchmark --sample 50
 ```
 
-Results are saved to `experiments/chunking_benchmark/results/benchmark_results.csv` and six plots (heatmap, radar, scatter, etc.).
+Results are saved to `experiments/chunking_benchmark/results/` (CSV, JSON, and six plots). These artifacts are tracked in git so benchmark numbers are visible on GitHub without re-running the pipeline.
 
 ---
 
 ## Benchmark Results
 
-**Corpus:** 597 FDA drug-biomarker records · **Embedding:** `all-MiniLM-L6-v2` (384 dims) · **k:** adaptive (≈ 2000 token context budget per query)
+**Corpus:** 597 FDA drug-biomarker records · **Embedding:** `all-MiniLM-L6-v2` (384 dims, 256 WordPiece max) · **k:** fixed at 5 (fair comparison) · **Queries:** 100 synthetic (seed=42)
 
-| Strategy | Chunks | Avg tokens | k | MRR | Doc Hit@k | Context Recall | Section Hit@k |
+| Strategy | Chunks | Avg tokens | Max tokens | MRR | Doc Hit@5 | Context Recall | Section Hit@5 |
 |---|---|---|---|---|---|---|---|
-| `semantic` | 2 584 | 157 | 13 | **0.326** | **0.51** | 0.315 | 0.00 |
-| `fixed_1024` | 1 016 | 424 | 5 | 0.294 | 0.45 | **0.379** | 0.00 |
-| `recursive_512` | 1 133 | 371 | 5 | 0.294 | 0.45 | 0.368 | 0.00 |
-| `fixed_512` | 1 683 | 260 | 8 | 0.284 | 0.50 | 0.374 | 0.00 |
-| `structure_aware` | 1 511 | 267 | 7 | 0.267 | 0.38 | 0.292 | **0.540** |
+| `fixed_192` | 4 113 | 108 | 177 | **0.322** | **0.430** | 0.207 | 0.000 |
+| `semantic` | 3 315 | 122 | ≤192 | 0.300 | **0.430** | 0.204 | 0.000 |
+| `structure_aware` | 2 991 | 135 | 202 | 0.306 | 0.420 | 0.221 | **0.539** |
+| `recursive_192` | 2 707 | 157 | 208 | 0.297 | 0.400 | **0.258** | 0.000 |
+| `fixed_256` | 3 127 | 141 | 231 | 0.284 | 0.370 | 0.213 | 0.000 |
 
-> **k is adaptive** (k = round(2000 / avg\_tokens)) to equalise the total context budget across strategies.
-> MRR is k-independent and the primary fair ranking signal.
-> Hit@k and nDCG@k are not directly comparable across rows with different k — rerun with `--fixed-k 5` for a normalised table.
+> All strategies use **model-aligned chunk sizes** (`SAFE_CHUNK_TOKENS = 192`) so embeddings represent the full chunk text — no silent truncation by `all-MiniLM-L6-v2`.
+> Fixed k=5 makes Hit@5 and nDCG@5 directly comparable across strategies.
 
 **Key findings:**
 
-- **`semantic` leads on MRR (0.326)** — the embedding-based boundary detection captures topic transitions better than fixed-size splitting, particularly on named queries.
-- **`fixed_1024` leads on context recall (0.379)** — larger chunks preserve more of the GT document text in the retrieved context window, useful when the answer spans multiple sentences.
-- **`structure_aware` is the only strategy with non-zero section retrieval (0.540)** — it is the correct choice whenever the user query references a specific FDA labeling section (e.g. "What does the Warnings and Precautions section say about…").
-- **Embedding model is the primary performance ceiling.** Average MRR across all strategies is ~0.29. Literature with `text-embedding-3-small` on similar corpora reports Doc F1 ~0.86. Chunking strategy rankings are valid within `all-MiniLM-L6-v2`; absolute scores will improve significantly with a stronger model.
-- **Recommended hybrid index:** route queries containing section keywords → `structure_aware` collection; all other queries → `semantic` collection.
+- **`fixed_192` leads on MRR (0.322) and nDCG@5 (0.521)** — best ranking quality; simplest baseline to implement.
+- **`structure_aware` is the only strategy with section retrieval (0.539)** — route section-specific queries to this collection.
+- **`recursive_192` leads on context recall (0.258)** — best at recovering GT document tokens from correct-doc chunks.
+- **Three strategies tie on Doc Hit@5 (0.430):** `fixed_192`, `semantic`, and near-tie `structure_aware` (0.420).
+- **Embedding model remains the primary performance ceiling.** Average Doc Hit@5 is ~0.41 (59% of queries miss the correct document). Stronger embeddings (BGE-base, PubMedBERT) are the next lever.
+- **Recommended hybrid index:** section keywords → `structure_aware`; general queries → `fixed_192` or `recursive_192`.
 
 Plots: [`retrieval_comparison.png`](experiments/chunking_benchmark/results/retrieval_comparison.png) · [`metrics_heatmap.png`](experiments/chunking_benchmark/results/metrics_heatmap.png) · [`radar_chart.png`](experiments/chunking_benchmark/results/radar_chart.png)
 
@@ -207,7 +215,7 @@ Components planned:
 - **Context Construction** — strategies for assembling the final context window from retrieved chunks
 - **LLM Generation** — generation layer with prompt templates and LLM judge evaluation
 - **Embedding benchmark results** — publish comparison of MiniLM vs BGE vs PubMedBERT on FDA text
-- **Fixed-k benchmark run** — rerun with `--fixed-k 5` for a normalised Hit@k / nDCG table
+- **Fixed-k benchmark run** — completed with `--fixed-k 5` on model-aligned strategies (see Benchmark Results above)
 
 ---
 

@@ -161,8 +161,45 @@ class FixedChunker(BaseChunker):
 # Pre-built instances matching the benchmark configurations
 # ---------------------------------------------------------------------------
 
+def build_fixed_192() -> FixedChunker:
+    """Model-aligned strategy: 192-token chunks, 10 % overlap.
+
+    192 tiktoken tokens ≈ 249 WordPiece tokens — fits within all-MiniLM-L6-v2's
+    256-token context window with a 7-token safety margin.  This is the
+    recommended fixed-size strategy when using all-MiniLM-L6-v2.
+    """
+    cfg = STRATEGY_CONFIGS["fixed_192"]
+    chunker = FixedChunker(
+        chunk_size=cfg["chunk_size"],
+        overlap_fraction=cfg["overlap_fraction"],
+    )
+    chunker.name = "fixed_192"
+    return chunker
+
+
+def build_fixed_256() -> FixedChunker:
+    """Borderline model-aligned strategy: 256-token chunks, 10 % overlap.
+
+    Sits at the edge of all-MiniLM-L6-v2's context window.  Most chunks will
+    fit; outliers with denser WordPiece tokenisation may be marginally truncated.
+    Prefer ``build_fixed_192`` for a guaranteed fit.
+    """
+    cfg = STRATEGY_CONFIGS["fixed_256"]
+    chunker = FixedChunker(
+        chunk_size=cfg["chunk_size"],
+        overlap_fraction=cfg["overlap_fraction"],
+    )
+    chunker.name = "fixed_256"
+    return chunker
+
+
 def build_fixed_512() -> FixedChunker:
-    """Strategy 1: 512-token chunks, 10 % overlap."""
+    """Legacy strategy: 512-token chunks, 10 % overlap.
+
+    Chunks exceed the all-MiniLM-L6-v2 context window (256 WordPiece tokens).
+    The embedding model silently truncates input beyond ~192 tiktoken tokens.
+    Kept for historical comparison only — use ``build_fixed_192`` instead.
+    """
     cfg = STRATEGY_CONFIGS["fixed_512"]
     chunker = FixedChunker(
         chunk_size=cfg["chunk_size"],
@@ -173,7 +210,11 @@ def build_fixed_512() -> FixedChunker:
 
 
 def build_fixed_1024() -> FixedChunker:
-    """Strategy 2: 1024-token chunks, 10 % overlap."""
+    """Legacy strategy: 1024-token chunks, 10 % overlap.
+
+    Chunks far exceed the all-MiniLM-L6-v2 context window.  Kept for historical
+    comparison only — use ``build_fixed_192`` instead.
+    """
     cfg = STRATEGY_CONFIGS["fixed_1024"]
     chunker = FixedChunker(
         chunk_size=cfg["chunk_size"],

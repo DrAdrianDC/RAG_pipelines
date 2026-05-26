@@ -134,16 +134,43 @@ class LangChainRecursiveChunker(BaseChunker):
 # Factory helpers — consistent with the rest of the chunking library
 # ---------------------------------------------------------------------------
 
+def build_lc_fixed_192() -> LangChainFixedChunker:
+    """Model-aligned cross-validation: LangChain TokenTextSplitter at 192 tokens.
+
+    Use alongside ``build_fixed_192`` to validate that both implementations
+    produce equivalent results.
+    """
+    cfg = STRATEGY_CONFIGS["lc_fixed_192"]
+    chunker = LangChainFixedChunker(chunk_size=cfg["chunk_size"], overlap=cfg["overlap"])
+    chunker.name = "lc_fixed_192"
+    return chunker
+
+
+def build_lc_recursive_192() -> LangChainRecursiveChunker:
+    """Model-aligned cross-validation: LangChain RecursiveCharacterTextSplitter at 192 tokens.
+
+    Use alongside ``build_recursive_192`` to validate that both implementations
+    produce equivalent results.
+    """
+    cfg = STRATEGY_CONFIGS["lc_recursive_192"]
+    chunker = LangChainRecursiveChunker(chunk_size=cfg["chunk_size"], overlap=cfg["overlap"])
+    chunker.name = "lc_recursive_192"
+    return chunker
+
+
 def build_lc_fixed_512() -> LangChainFixedChunker:
+    """Legacy: LangChain TokenTextSplitter at 512 tokens. Exceeds model window."""
     cfg = STRATEGY_CONFIGS["lc_fixed_512"]
     return LangChainFixedChunker(chunk_size=cfg["chunk_size"], overlap=cfg["overlap"])
 
 
 def build_lc_fixed_1024() -> LangChainFixedChunker:
+    """Legacy: LangChain TokenTextSplitter at 1024 tokens. Exceeds model window."""
     cfg = STRATEGY_CONFIGS["lc_fixed_1024"]
     return LangChainFixedChunker(chunk_size=cfg["chunk_size"], overlap=cfg["overlap"])
 
 
 def build_lc_recursive_512() -> LangChainRecursiveChunker:
+    """Legacy: LangChain RecursiveCharacterTextSplitter at 512 tokens. Exceeds model window."""
     cfg = STRATEGY_CONFIGS["lc_recursive_512"]
     return LangChainRecursiveChunker(chunk_size=cfg["chunk_size"], overlap=cfg["overlap"])

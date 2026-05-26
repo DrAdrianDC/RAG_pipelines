@@ -35,9 +35,9 @@ try:
 except ImportError:
     pass  # python-dotenv not installed — set env vars manually or via shell
 
-from chunking.config import STRATEGY_CONFIGS
-from chunking.fixed_chunking import build_fixed_512, build_fixed_1024
-from chunking.recursive_chunking import build_recursive_512
+from chunking.config import SAFE_CHUNK_TOKENS, STRATEGY_CONFIGS
+from chunking.fixed_chunking import build_fixed_192, build_fixed_256, build_fixed_512, build_fixed_1024
+from chunking.recursive_chunking import build_recursive_192, build_recursive_512
 from chunking.semantic_chunking import build_semantic
 from chunking.structure_aware_chunking import build_structure_aware
 from chunking.utils import load_jsonl, normalize_section
@@ -64,22 +64,51 @@ RESULTS_PATH.mkdir(parents=True, exist_ok=True)
 # ---------------------------------------------------------------------------
 
 def _build_strategies() -> list[Any]:
+    """Return the default benchmark strategies.
+
+    Model-aligned strategies (chunk_size <= SAFE_CHUNK_TOKENS = 192) are the
+    primary set.  They guarantee that every chunk fits within the
+    all-MiniLM-L6-v2 context window (256 WordPiece tokens) so embeddings
+    represent the full chunk text.
+
+    Legacy strategies (fixed_512, fixed_1024, recursive_512) are excluded from
+    the default run but can be included with --strategies for historical
+    comparison.  Their chunks exceed the model window and are silently
+    truncated by the embedding model.
+    """
     return [
-        build_fixed_512(),
-        build_fixed_1024(),
-        build_recursive_512(),
+        build_fixed_192(),
+        build_fixed_256(),
+        build_recursive_192(),
         build_semantic(),
         build_structure_aware(),
     ]
 
 
+def _build_legacy_strategies() -> list[Any]:
+    """Legacy oversize strategies — chunks exceed all-MiniLM-L6-v2 context window."""
+    return [
+        build_fixed_512(),
+        build_fixed_1024(),
+        build_recursive_512(),
+    ]
+
+
 def _build_langchain_strategies() -> list[Any]:
     from chunking.langchain_chunking import (
+        build_lc_fixed_192,
+        build_lc_recursive_192,
         build_lc_fixed_512,
         build_lc_fixed_1024,
         build_lc_recursive_512,
     )
-    return [build_lc_fixed_512(), build_lc_fixed_1024(), build_lc_recursive_512()]
+    return [
+        build_lc_fixed_192(),
+        build_lc_recursive_192(),
+        build_lc_fixed_512(),
+        build_lc_fixed_1024(),
+        build_lc_recursive_512(),
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -184,11 +213,16 @@ def run_strategy(
 # ---------------------------------------------------------------------------
 
 _DISPLAY_NAMES = {
-    "fixed_512": "Fixed 512",
-    "fixed_1024": "Fixed 1024",
-    "recursive_512": "Recursive 512",
+    # Model-aligned (recommended)
+    "fixed_192": "Fixed 192",
+    "fixed_256": "Fixed 256",
+    "recursive_192": "Recursive 192",
     "semantic": "Semantic",
     "structure_aware": "Structure-Aware",
+    # Legacy / oversize
+    "fixed_512": "Fixed 512 (legacy)",
+    "fixed_1024": "Fixed 1024 (legacy)",
+    "recursive_512": "Recursive 512 (legacy)",
 }
 
 _PRIMARY_METRICS = ["doc_hit_at_k", "mrr", "ndcg_at_k", "context_recall"]
@@ -367,8 +401,13 @@ def _print_run_header(args: argparse.Namespace) -> None:
         else "disabled — retrieval metrics only (sufficient to rank chunking strategies)"
     )
     print(f"\n  Embedding: {DEFAULT_MODEL}  (22M params, 384 dims)")
-    print(f"             NOTE: this model is the main performance ceiling on a dense")
-    print(f"             597-doc FDA corpus. Chunking rankings are valid within this model.")
+    print(f"             Context window: 256 WordPiece tokens")
+    print(f"             SAFE_CHUNK_TOKENS = {SAFE_CHUNK_TOKENS} tiktoken cl100k_base")
+    print(f"             (≈ 249 WordPiece at 1.3× ratio — 7-token margin below model limit)")
+    print(f"             Model-aligned strategies (fixed_192, fixed_256, recursive_192,")
+    print(f"             semantic, structure_aware) respect this limit.")
+    print(f"             Legacy strategies (fixed_512, fixed_1024, recursive_512) do not")
+    print(f"             and are excluded from the default run (use --include-legacy).")
     print(f"  k mode   : {k_desc}")
     print(f"  LLM judge: {llm_desc}")
     print(f"  Sample   : {args.sample or 'all'} queries  |  seed={42}")
@@ -536,7 +575,12 @@ def _print_experiment_conclusion(
     print(f"")
     print(f"  The ranking '{winner} > others' holds within this embedding model.")
     print(f"  Absolute scores will improve significantly with a stronger model")
-    print(f"  (e.g. BAAI/bge-base-en-v1.5, text-embedding-3-small).")
+    print(f"  (e.g. BAAI/bge-base-en-v1.5, text-embedding-3-small, or a biomedical")
+    print(f"   model such as NeuML/pubmedbert-base-embeddings).")
+    print(f"")
+    print(f"  SAFE_CHUNK_TOKENS = {SAFE_CHUNK_TOKENS}  →  model-aligned strategies respected the")
+    print(f"  context window.  Compare these results against --include-legacy to")
+    print(f"  quantify the truncation penalty of oversize strategies.")
     print(f"  The chunking comparison experiment is valid as-is.")
     print()
 
@@ -563,6 +607,15 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--no-plots", action="store_true", default=False)
     p.add_argument("--strategies", nargs="*", default=None)
     p.add_argument("--include-langchain", action="store_true", default=False)
+    p.add_argument(
+        "--include-legacy", action="store_true", default=False,
+        help=(
+            "Also run legacy oversize strategies (fixed_512, fixed_1024, recursive_512). "
+            "Their chunks exceed the all-MiniLM-L6-v2 context window (256 WordPiece tokens) "
+            "and are silently truncated by the embedding model. "
+            "Useful to quantify the truncation penalty vs model-aligned strategies."
+        ),
+    )
     p.add_argument(
         "--llm-judge", action="store_true", default=False,
         help=(
@@ -622,6 +675,8 @@ def main() -> None:
     print(f"  {len(queries)} queries generated — types: {type_counts}")
 
     all_strategies = _build_strategies()
+    if args.include_legacy:
+        all_strategies += _build_legacy_strategies()
     if args.include_langchain:
         all_strategies += _build_langchain_strategies()
     if args.strategies:
@@ -641,7 +696,7 @@ def main() -> None:
         )
         all_results.append(result)
 
-    core_names = {s.name for s in _build_strategies()}
+    core_names = {s.name for s in _build_strategies()}  # model-aligned only
     df_all = pd.DataFrame(all_results)
     df = df_all[df_all["strategy"].isin(core_names)].copy()
 

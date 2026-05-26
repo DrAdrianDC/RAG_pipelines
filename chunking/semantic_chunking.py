@@ -255,7 +255,25 @@ class SemanticChunker(BaseChunker):
                 if acc:
                     final.append(acc)
 
-        return [c for c in final if c.strip()]
+        # --- (c) Hard-split any chunk still oversized (no paragraph breaks) ---
+        sanitized: list[str] = []
+        for chunk in final:
+            if count_tokens(chunk) <= self.max_chunk_tokens:
+                sanitized.append(chunk)
+            else:
+                sanitized.extend(self._hard_split(chunk))
+
+        return [c for c in sanitized if c.strip()]
+
+    def _hard_split(self, text: str) -> list[str]:
+        """Recursive sub-split when paragraph boundaries cannot reduce chunk size."""
+        from chunking.recursive_chunking import RecursiveChunker
+
+        splitter = RecursiveChunker(
+            chunk_size=self.max_chunk_tokens,
+            overlap_fraction=0.0,
+        )
+        return splitter._split_recursive(text, splitter.separators)
 
     # ------------------------------------------------------------------
     # BaseChunker interface

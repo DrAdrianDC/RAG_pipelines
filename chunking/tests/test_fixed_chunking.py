@@ -15,8 +15,14 @@ from __future__ import annotations
 
 import pytest
 
-from chunking.config import STRATEGY_CONFIGS
-from chunking.fixed_chunking import FixedChunker, build_fixed_512, build_fixed_1024
+from chunking.config import SAFE_CHUNK_TOKENS, STRATEGY_CONFIGS
+from chunking.fixed_chunking import (
+    FixedChunker,
+    build_fixed_192,
+    build_fixed_256,
+    build_fixed_512,
+    build_fixed_1024,
+)
 from chunking.utils import count_tokens
 from chunking.tests.conftest import assert_valid_chunk_schema
 
@@ -207,6 +213,30 @@ class TestOverlapFractionValidation:
 # ---------------------------------------------------------------------------
 
 class TestFactoryBuilders:
+    def test_build_fixed_192_name(self):
+        assert build_fixed_192().name == "fixed_192"
+
+    def test_build_fixed_192_chunk_size_is_safe_chunk_tokens(self):
+        assert build_fixed_192().chunk_size == SAFE_CHUNK_TOKENS
+
+    def test_build_fixed_192_matches_config(self):
+        cfg = STRATEGY_CONFIGS["fixed_192"]
+        chunker = build_fixed_192()
+        assert chunker.chunk_size == cfg["chunk_size"]
+        assert chunker.overlap_fraction == cfg["overlap_fraction"]
+
+    def test_build_fixed_256_name(self):
+        assert build_fixed_256().name == "fixed_256"
+
+    def test_build_fixed_256_chunk_size_is_256(self):
+        assert build_fixed_256().chunk_size == 256
+
+    def test_build_fixed_256_matches_config(self):
+        cfg = STRATEGY_CONFIGS["fixed_256"]
+        chunker = build_fixed_256()
+        assert chunker.chunk_size == cfg["chunk_size"]
+        assert chunker.overlap_fraction == cfg["overlap_fraction"]
+
     def test_build_fixed_512_name(self):
         assert build_fixed_512().name == "fixed_512"
 

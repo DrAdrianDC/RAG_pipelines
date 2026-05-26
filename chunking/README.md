@@ -6,7 +6,36 @@ A self-contained Python library that implements, benchmarks, and cross-validates
 
 ## Overview
 
-Chunking is the step that determines what text reaches the LLM. A well-formed chunk is **small enough for precise retrieval** and **complete enough to give the LLM full context**. 
+Chunking is the step that determines what text reaches the LLM. A well-formed chunk is **small enough for precise retrieval** and **complete enough to give the LLM full context**. This module implements the strategies described in the [Weaviate chunking guide](https://weaviate.io/blog/chunking-strategies-for-rag) and validated against the methodology of the [Vecta benchmark (2026)](https://www.runvecta.com/blog/we-benchmarked-7-chunking-strategies-most-advice-was-wrong).
+
+---
+
+## Embedding model context-window alignment
+
+> **Critical constraint** — read before choosing a chunk size.
+
+`all-MiniLM-L6-v2` (the default embedding model) was trained with a hard limit of **256 WordPiece tokens**. Any chunk that exceeds this limit is **silently truncated** by the model — the embedding only represents the first 256 WordPiece tokens, and the rest of the chunk text is invisible to the retrieval system.
+
+tiktoken `cl100k_base` (used for token counting in this library) and WordPiece tokenise the same text differently. For English biomedical prose the empirical ratio is approximately **1.15–1.30 WordPiece tokens per cl100k token**, so:
+
+```
+256 WordPiece  ≈  197–222 cl100k tokens
+```
+
+`SAFE_CHUNK_TOKENS = 192` (defined in `config.py`) provides a ~30-token margin below the lower end of that range:
+
+```
+192 cl100k  ×  1.30  =  249 WordPiece  →  7-token margin below the 256 limit
+```
+
+**All model-aligned strategies set `chunk_size = SAFE_CHUNK_TOKENS`.** If you change `EMBEDDING_MODEL` to a model with a different context window, update `SAFE_CHUNK_TOKENS` accordingly — all strategies scale automatically.
+
+| Model | Context window | Recommended `SAFE_CHUNK_TOKENS` |
+|---|---|---|
+| `all-MiniLM-L6-v2` (current) | 256 WordPiece | **192** |
+| `all-mpnet-base-v2` | 512 WordPiece | 384 |
+| `BAAI/bge-base-en-v1.5` | 512 WordPiece | 384 |
+| `NeuML/pubmedbert-base-embeddings` | 512 WordPiece | 384 |
 
 ### Corpus
 
@@ -64,15 +93,15 @@ pip install -r chunking/requirements.txt
 
 ```python
 from chunking.utils import load_jsonl
-from chunking.fixed_chunking import build_fixed_512
-from chunking.recursive_chunking import build_recursive_512
+from chunking.fixed_chunking import build_fixed_192
+from chunking.recursive_chunking import build_recursive_192
 from chunking.structure_aware_chunking import build_structure_aware
 
 # Load corpus
 records = load_jsonl()                       # 597 FDA biomarker records
 
-# Instantiate a strategy
-chunker = build_recursive_512()
+# Instantiate a model-aligned strategy (fits all-MiniLM-L6-v2 context window)
+chunker = build_recursive_192()
 
 # Chunk a single record
 record = records[0]
@@ -120,16 +149,32 @@ Chunks with `token_count < 5` are silently filtered by `BaseChunker.chunk_corpus
 
 ## Strategy catalogue
 
+### Model-aligned strategies (recommended — `chunk_size` ≤ `SAFE_CHUNK_TOKENS = 192`)
+
+Every chunk produced by these strategies fits within the `all-MiniLM-L6-v2` context window. No silent truncation.
+
 | ID | Class | Weaviate category | `chunk_size` | `overlap_fraction` |
 |---|---|---|---|---|
-| `fixed_512` | `FixedChunker` | Fixed-Size / Token | 512 | 0.10 |
-| `fixed_1024` | `FixedChunker` | Fixed-Size / Token | 1024 | 0.10 |
-| `recursive_512` | `RecursiveChunker` | Recursive | 512 | 0.10 |
-| `semantic` | `SemanticChunker` | Semantic / Context-Aware | adaptive | — |
-| `structure_aware` | `StructureAwareChunker` | Document-Based | max 1024 | — |
-| `lc_fixed_512` | `LangChainFixedChunker` | Fixed-Size (LangChain) | 512 | ~0.10 |
-| `lc_fixed_1024` | `LangChainFixedChunker` | Fixed-Size (LangChain) | 1024 | ~0.10 |
-| `lc_recursive_512` | `LangChainRecursiveChunker` | Recursive (LangChain) | 512 | ~0.10 |
+| `fixed_192` | `FixedChunker` | Fixed-Size / Token | 192 (`SAFE_CHUNK_TOKENS`) | 0.10 |
+| `fixed_256` | `FixedChunker` | Fixed-Size / Token | 256 (borderline) | 0.10 |
+| `recursive_192` | `RecursiveChunker` | Recursive | 192 (`SAFE_CHUNK_TOKENS`) | 0.10 |
+| `semantic` | `SemanticChunker` | Semantic / Context-Aware | adaptive, capped at 192 | — |
+| `structure_aware` | `StructureAwareChunker` | Document-Based | max 192 (`SAFE_CHUNK_TOKENS`) | — |
+| `lc_fixed_192` | `LangChainFixedChunker` | Fixed-Size (LangChain) | 192 | ~0.10 |
+| `lc_recursive_192` | `LangChainRecursiveChunker` | Recursive (LangChain) | 192 | ~0.10 |
+
+### Legacy / oversize strategies (historical comparison only)
+
+These strategies use chunk sizes that exceed `SAFE_CHUNK_TOKENS`. The embedding model silently truncates chunks beyond ~192 tokens. **Not recommended for production with `all-MiniLM-L6-v2`.**
+
+| ID | Class | `chunk_size` | Status |
+|---|---|---|---|
+| `fixed_512` | `FixedChunker` | 512 | Truncated at embedding — avg chunk > model window |
+| `fixed_1024` | `FixedChunker` | 1024 | Truncated at embedding — avg chunk >> model window |
+| `recursive_512` | `RecursiveChunker` | 512 | Truncated at embedding — avg chunk > model window |
+| `lc_fixed_512` | `LangChainFixedChunker` | 512 | Legacy cross-validation |
+| `lc_fixed_1024` | `LangChainFixedChunker` | 1024 | Legacy cross-validation |
+| `lc_recursive_512` | `LangChainRecursiveChunker` | 512 | Legacy cross-validation |
 
 ### `fixed_chunking.py` — Fixed-Size / Token Chunking
 
@@ -267,12 +312,14 @@ class MyChunker(BaseChunker):
         ]
 ```
 
-2. **Register in `config.py`**:
+2. **Register in `config.py`** (use `SAFE_CHUNK_TOKENS` to respect the model window):
 
 ```python
+from chunking.config import SAFE_CHUNK_TOKENS
+
 "my_strategy": {
-    "chunk_size": 512,
-    "description": "My custom strategy",
+    "chunk_size": SAFE_CHUNK_TOKENS,   # 192 — fits all-MiniLM-L6-v2
+    "description": "My custom strategy [model-aligned]",
 }
 ```
 
@@ -286,6 +333,7 @@ class MyChunker(BaseChunker):
 
 - **Pure library**: `chunking/` does not import from `experiments/`, `vectorstores/`, or `evaluation/`. It can be used, tested, and shipped independently.
 - **Deterministic by default**: all strategies produce the same output for the same input. No randomness except in `SemanticChunker` where it is controlled via the model weights (fixed model = deterministic output).
-- **Token-accurate**: all size limits are enforced in `tiktoken cl100k_base` tokens, not characters or words. This guarantees chunk sizes are accurate for the embedding model's context window.
+- **Token-accurate**: all size limits are enforced in `tiktoken cl100k_base` tokens, not characters or words. This guarantees chunk sizes are accurate relative to the embedding model's context window.
+- **Model-window aligned**: `SAFE_CHUNK_TOKENS = 192` is the single source of truth for the maximum safe chunk size given the current embedding model. All model-aligned strategies reference it so that updating the model requires changing only one constant.
 - **Schema contract**: every chunker produces dicts validated against the same schema via `BaseChunker._make_chunk`. Downstream modules (`vectorstores/`, `evaluation/`) depend on this contract.
 - **Overlap fraction, not absolute**: overlap is expressed as a fraction of `chunk_size` (Weaviate: 10–20 %). This means hyperparameters in `config.py` remain meaningful when `chunk_size` is changed.
