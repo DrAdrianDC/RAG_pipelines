@@ -1,0 +1,59 @@
+# FDA Biomarker Chunking Benchmark — dependencies
+#
+# Install with:  pip install -r chunking/requirements.txt
+#
+# This file covers three dependency layers.  Install only what you need:
+#
+#   Layer 1 — chunking library core (chunking/*.py, tests/)
+#   Layer 2 — experiment runner    (experiments/chunking_benchmark/)
+#   Layer 3 — LLM judge / eval     (experiments/chunking_benchmark/run_benchmark.py)
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# LAYER 1 — chunking library core
+# Required by: fixed_chunking, recursive_chunking, semantic_chunking,
+#              structure_aware_chunking, langchain_chunking, utils
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Tokeniser (cl100k_base — same as text-embedding-3-small)
+tiktoken>=0.7.0
+
+# Local embedding model used by SemanticChunker (no API key required).
+# Pinned to 2.7.x / transformers 4.44.x — avoids the nn NameError in
+# sentence-transformers ≥5 when torch < 2.4 is present on the system.
+sentence-transformers==2.7.0
+transformers==4.44.2
+
+# LangChain text splitters (lightweight ~5 MB — NOT full LangChain ~300 MB).
+# Used by langchain_chunking.py for cross-validation against custom implementations.
+langchain-text-splitters>=0.3.0
+
+# NLP sentence tokeniser used by SemanticChunker
+nltk>=3.9.0
+
+# Numerics — pin below 2.0 to avoid NumPy ABI conflicts with PyTorch
+numpy>=1.26.0,<2.0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LAYER 2 — experiment runner
+# Required by: experiments/chunking_benchmark/run_benchmark.py, benchmark_utils.py
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Vector store used to index chunks and run similarity queries in benchmarks
+chromadb>=0.5.0
+
+# Tabular results and visualisation
+pandas>=2.2.0
+matplotlib>=3.9.0
+seaborn>=0.13.0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LAYER 3 — LLM judge / evaluation
+# Required by: experiments/chunking_benchmark/run_benchmark.py (--judge flag)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# OpenAI-compatible SDK — works with Gemini (free tier) and OpenAI.
+# Set GEMINI_API_KEY or OPENAI_API_KEY in .env (see root .env.example).
+openai>=1.30.0
+
+# Auto-loads .env so API keys are available without manual export
+python-dotenv>=1.0.0
