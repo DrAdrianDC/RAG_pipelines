@@ -29,9 +29,19 @@ datasets/fda_biomarkers/processed/*.json
 # ==========================================
 # Experiment artifacts (auto-generated, large)
 # ==========================================
+# ChromaDB binary stores — large, reproducible, not useful in git
 experiments/chunking_benchmark/chroma_stores/
-experiments/chunking_benchmark/results/
 experiments/embedding_benchmark/chroma_stores/
-experiments/embedding_benchmark/results/
 chunking/chroma_stores/
 chunking/results/
+
+# Results: ignore the directories themselves but track the output artifacts
+# so benchmark numbers and plots are visible on GitHub without running the pipeline.
+experiments/chunking_benchmark/results/*
+experiments/embedding_benchmark/results/*
+!experiments/chunking_benchmark/results/*.csv
+!experiments/chunking_benchmark/results/*.json
+!experiments/chunking_benchmark/results/*.png
+!experiments/embedding_benchmark/results/*.csv
+!experiments/embedding_benchmark/results/*.json
+!experiments/embedding_benchmark/results/*.png

@@ -74,7 +74,13 @@ from chunking.utils import count_tokens, make_doc_id, normalize_section
 # (e.g. "INDICATIONS AND USAGE", "WARNINGS AND PRECAUTIONS") and not
 # Title-Case subsections like "1.1 Early Breast Cancer".
 _SECTION_PATTERN = re.compile(
-    r"(?<!\d)(?P<num>\d+(?:\.\d+)*)\s+(?P<title>[A-Z]{2}[A-Z\s,/\(\)&\-]+?)(?=\s+(?:\d+(?:\.\d+)*\s+[A-Z]|[A-Z][a-z]|[a-z]))"
+    r"(?<!\d)(?P<num>\d+(?:\.\d+)*)\s+(?P<title>[A-Z]{2}[A-Z\s,/\(\)&\-]+?)"
+    r"(?=\s+(?:"
+    r"\d+(?:\.\d+)*\s+[A-Z]"   # next numbered section  (e.g. "2 DOSAGE")
+    r"|[A-Z][a-z]"              # title-case body word   (e.g. "Administer")
+    r"|[A-Z]+\s+[a-z]"         # ALL-CAPS brand name followed by lowercase body
+    r"|[a-z]"                   # lowercase body word    (e.g. "the")
+    r"))"
 )
 
 # Separators for oversized section fallback (recursive strategy order).

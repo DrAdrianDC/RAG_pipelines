@@ -195,8 +195,14 @@ class TestBoundaryDetection:
             f"got {len(similar_chunks)} vs {len(dissimilar_chunks)}"
         )
 
-    def test_higher_threshold_produces_more_chunks(self, mock_model):
-        """Higher similarity_threshold → lower percentile cutoff → more splits."""
+    def test_lower_threshold_produces_more_chunks(self, mock_model):
+        """
+        Lower similarity_threshold → higher percentile cutoff → more splits.
+
+        Formula: percentile = (1 − threshold) × 100
+          threshold=0.3 → 70th-percentile cutoff → ~70 % of pairs are split → more chunks
+          threshold=0.9 → 10th-percentile cutoff → ~10 % of pairs are split → fewer chunks
+        """
         record = _multi_sentence_record(n_sentences=20)
         chunks_low = make_chunker(
             similarity_threshold=0.3, min_chunk_tokens=5, model=mock_model
@@ -204,7 +210,10 @@ class TestBoundaryDetection:
         chunks_high = make_chunker(
             similarity_threshold=0.9, min_chunk_tokens=5, model=mock_model
         ).chunk_record(record)
-        assert len(chunks_low) <= len(chunks_high)
+        assert len(chunks_low) >= len(chunks_high), (
+            f"Expected lower threshold (0.3) to produce ≥ chunks than higher (0.9), "
+            f"got {len(chunks_low)} vs {len(chunks_high)}"
+        )
 
 
 # ---------------------------------------------------------------------------

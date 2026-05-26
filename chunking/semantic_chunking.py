@@ -34,8 +34,10 @@ Step 3 — Sliding-window similarity + adaptive percentile threshold:
     when the corpus contains both dense technical prose (Clinical
     Pharmacology) and narrative sections (Adverse Reactions).
 
-    similarity_threshold=0.7 → split where similarity < 30th-percentile
-    of THIS document's pairwise-similarity distribution.
+    similarity_threshold=0.7 → split at (1-0.7)*100 = 30th-percentile of
+    THIS document's pairwise-similarity distribution → conservative (30% of
+    sentence pairs are split points).  Lower threshold → higher percentile
+    cutoff → more splits.  Higher threshold → fewer splits (larger chunks).
 
 Step 4 — _enforce_limits():
     - Merge chunks shorter than min_chunk_tokens with their neighbour.
@@ -119,10 +121,10 @@ class SemanticChunker(BaseChunker):
     ----------
     similarity_threshold : float
         Controls how aggressively to split.  Interpreted as a *percentile*:
-        threshold=0.7 → split wherever similarity is below the 30th percentile
-        of this document's pairwise-similarity distribution (adaptive).
-        Lower → fewer splits (larger, broader chunks).
-        Higher → more splits (smaller, focused chunks).
+        threshold=0.7 → split at the bottom-30th percentile of this document's
+        pairwise-similarity distribution (adaptive, formula: (1-threshold)*100).
+        Lower → more splits (smaller, focused chunks) — looser cutoff.
+        Higher → fewer splits (larger, broader chunks) — stricter cutoff.
     min_chunk_tokens : int
         Minimum acceptable chunk size.  Chunks below this are merged with
         their right neighbour (Step 4).  Default 50 tokens for FDA text.
@@ -218,6 +220,8 @@ class SemanticChunker(BaseChunker):
         b) Split chunks exceeding max_chunk_tokens on double-newlines.
         """
         # --- (a) Merge too-small chunks ---
+        # Accumulate into `carry` until combined size reaches min_chunk_tokens,
+        # then flush the *combined* text — never the carry alone.
         merged: list[str] = []
         carry = ""
         for chunk in raw_chunks:
@@ -225,10 +229,8 @@ class SemanticChunker(BaseChunker):
             if count_tokens(combined) < self.min_chunk_tokens:
                 carry = combined
             else:
-                if carry:
-                    merged.append(carry)
-                    carry = ""
-                merged.append(chunk)
+                merged.append(combined)
+                carry = ""
         if carry:
             if merged:
                 merged[-1] = (merged[-1] + " " + carry).strip()

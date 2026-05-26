@@ -37,11 +37,28 @@ class MockEmbeddingFunction:
 
     Returns deterministic float vectors without loading any model.
     Seeded on the number of texts so results are consistent per call.
+
+    The ``name()`` method is required by ChromaDB ≥ 0.6 to validate that the
+    embedding function registered with a collection matches the one used at
+    query time.  Without it, ``get_or_create_collection`` raises AttributeError.
     """
 
-    def __call__(self, input: list[str]) -> list[list[float]]:  # noqa: A002
+    def name(self) -> str:  # required by chromadb ≥ 0.6
+        return "mock-embedding-function"
+
+    def _embed(self, input: list[str]) -> list[list[float]]:  # noqa: A002
         rng = np.random.default_rng(seed=len(input) + 1)
         return rng.random((len(input), EMBED_DIM)).tolist()
+
+    def __call__(self, input: list[str]) -> list[list[float]]:  # noqa: A002
+        return self._embed(input)
+
+    # chromadb ≥ 0.6 dispatches embed_documents for upsert and embed_query for query
+    def embed_documents(self, input: list[str]) -> list[list[float]]:  # noqa: A002
+        return self._embed(input)
+
+    def embed_query(self, input: list[str]) -> list[list[float]]:  # noqa: A002
+        return self._embed(input)
 
 
 @pytest.fixture

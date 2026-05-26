@@ -72,8 +72,9 @@ STRATEGY_CONFIGS: dict = {
         "similarity_threshold": 0.7,
         # Interpreted as a percentile: 0.7 → split at bottom-30th percentile
         # of pairwise similarities for THIS document (adaptive, not global).
-        # Lower values = fewer splits (larger chunks).
-        # Higher values = more splits (smaller, more focused chunks).
+        # Formula: percentile = (1 − threshold) × 100.
+        # Lower values = more splits (smaller, focused chunks) — looser cutoff.
+        # Higher values = fewer splits (larger, broader chunks) — stricter cutoff.
         "min_chunk_tokens": 50,     # Raised from 20 — FDA text is never meaningful at 20 tokens
         "max_chunk_tokens": 600,
         "description": "Semantic chunking (Weaviate 4-step), adaptive percentile threshold",
