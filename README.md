@@ -129,7 +129,7 @@ cp .env.example .env
 ## Running Tests
 
 ```bash
-# Full test suite — 262 tests, no API keys or GPU required (~5 s)
+# Full test suite — 294 tests, no API keys or GPU required (~5 s)
 pytest
 
 # Individual modules
@@ -139,7 +139,7 @@ pytest vectorstores/tests/ -v
 pytest retrieval/tests/ -v
 ```
 
-All 262 unit tests use mock models and in-memory ChromaDB — no network access, no GPU, no API keys.
+All 294 unit tests use mock models and in-memory ChromaDB — no network access, no GPU, no API keys.
 
 ---
 
@@ -170,13 +170,13 @@ Results are saved to `experiments/chunking_benchmark/results/` (CSV, JSON, and s
 
 **Corpus:** 597 FDA drug-biomarker records · **Embedding:** `all-MiniLM-L6-v2` (384 dims, 256 WordPiece max) · **k:** fixed at 5 (fair comparison) · **Queries:** 100 synthetic (seed=42)
 
-| Strategy | Chunks | Avg tokens | Max tokens | MRR | Doc Hit@5 | Context Recall | Section Hit@5 |
-|---|---|---|---|---|---|---|---|
-| `fixed_192` | 4 113 | 108 | 177 | **0.322** | **0.430** | 0.207 | 0.000 |
-| `semantic` | 3 315 | 122 | ≤192 | 0.300 | **0.430** | 0.204 | 0.000 |
-| `structure_aware` | 2 991 | 135 | 202 | 0.306 | 0.420 | 0.221 | **0.539** |
-| `recursive_192` | 2 707 | 157 | 208 | 0.297 | 0.400 | **0.258** | 0.000 |
-| `fixed_256` | 3 127 | 141 | 231 | 0.284 | 0.370 | 0.213 | 0.000 |
+| Strategy | Chunks | Avg tokens | Max tokens | MRR | nDCG@5 | Doc Hit@5 | Context Recall | Section Hit@5 |
+|---|---|---|---|---|---|---|---|---|
+| `fixed_192` | 4 113 | 108 | 177 | **0.322** | **0.521** | **0.430** | 0.207 | 0.000 |
+| `semantic` | 3 315 | 122 | ≤192 | 0.300 | 0.442 | **0.430** | 0.204 | 0.000 |
+| `structure_aware` | 2 991 | 135 | 202 | 0.306 | 0.475 | 0.420 | 0.221 | **0.539** |
+| `recursive_192` | 2 707 | 157 | 208 | 0.297 | 0.484 | 0.400 | **0.258** | 0.000 |
+| `fixed_256` | 3 127 | 141 | 231 | 0.284 | 0.452 | 0.370 | 0.213 | 0.000 |
 
 > All strategies use **model-aligned chunk sizes** (`SAFE_CHUNK_TOKENS = 192`) so embeddings represent the full chunk text — no silent truncation by `all-MiniLM-L6-v2`.
 > Fixed k=5 makes Hit@5 and nDCG@5 directly comparable across strategies.
@@ -186,9 +186,20 @@ Results are saved to `experiments/chunking_benchmark/results/` (CSV, JSON, and s
 - **`fixed_192` leads on MRR (0.322) and nDCG@5 (0.521)** — best ranking quality; simplest baseline to implement.
 - **`structure_aware` is the only strategy with section retrieval (0.539)** — route section-specific queries to this collection.
 - **`recursive_192` leads on context recall (0.258)** — best at recovering GT document tokens from correct-doc chunks.
-- **Three strategies tie on Doc Hit@5 (0.430):** `fixed_192`, `semantic`, and near-tie `structure_aware` (0.420).
-- **Embedding model remains the primary performance ceiling.** Average Doc Hit@5 is ~0.41 (59% of queries miss the correct document). Stronger embeddings (BGE-base, PubMedBERT) are the next lever.
+- **Two strategies tie on Doc Hit@5 (0.430):** `fixed_192` and `semantic`; `structure_aware` is close (0.420).
 - **Recommended hybrid index:** section keywords → `structure_aware`; general queries → `fixed_192` or `recursive_192`.
+
+**Embedding model — the main bottleneck (prototype scope):**
+
+These numbers are a valid baseline for comparing *chunking strategies*, but they are not production-ready retrieval scores. The pipeline uses `all-MiniLM-L6-v2`, a general-purpose model trained on web text (Wikipedia, Reddit, news). It was not trained on biomedical or regulatory corpora and does not treat FDA-specific entities — drug INN names, biomarker codes, 21 CFR section headers — as first-class semantic signals.
+
+Consequences visible in the results:
+
+- **Average Doc Hit@5 is ~0.41** — the correct document is missed in ~59% of queries, even with chunking correctly aligned to the model window.
+- **Context recall stays low (0.20–0.26)** — when the right document is found, only ~20–26% of its relevant tokens appear in the retrieved chunks.
+- **Shared regulatory vocabulary inflates unfiltered metrics** — words like "pharmacokinetics" or "adverse reactions" appear across most of the 597 labels, so dense retrieval confuses documents that share terminology but refer to different drugs.
+
+As a **research prototype**, `all-MiniLM-L6-v2` is a reasonable starting point: it is fast, free, runs locally, and makes chunking comparisons reproducible. For a **clinical or regulatory RAG system**, the next step is a domain-specific embedding (`NeuML/pubmedbert-base-embeddings`, `pritamdeka/BioBert-Pubmed-Sentence-Similarity`, or `BAAI/bge-base-en-v1.5`) — not further chunk size tuning alone.
 
 Plots: [`retrieval_comparison.png`](experiments/chunking_benchmark/results/retrieval_comparison.png) · [`metrics_heatmap.png`](experiments/chunking_benchmark/results/metrics_heatmap.png) · [`radar_chart.png`](experiments/chunking_benchmark/results/radar_chart.png)
 
@@ -198,7 +209,7 @@ Plots: [`retrieval_comparison.png`](experiments/chunking_benchmark/results/retri
 
 **Benchmark queries are synthetic.** Queries are generated from the same JSONL records that are indexed, using 9 fixed templates rotated by record position. Named queries (which include the drug name and biomarker directly) are easier than real user queries — they test lexical match more than semantic understanding. The `semantic_hard` query type (no drug name) better approximates production difficulty.
 
-**Single embedding model ceiling.** All chunking comparisons use `all-MiniLM-L6-v2` (384 dims). Absolute retrieval scores are bounded by this model. The chunking *ranking* is valid within this model. Stronger embeddings (BGE-base, text-embedding-3-small) will raise the ceiling for all strategies uniformly — the relative ranking may shift.
+**General-purpose embedding on a biomedical corpus.** All chunking comparisons use `all-MiniLM-L6-v2` (384 dims), which was not trained for FDA regulatory text, drug nomenclature, or clinical terminology. The chunking *ranking* is valid within this model; absolute retrieval scores are not representative of what a domain-tuned system would achieve. Swapping to a biomedical embedding (PubMedBERT, BioBERT) or a stronger general model (BGE-base) is expected to raise the ceiling for all strategies — the relative ranking may shift.
 
 **LLM self-evaluation bias.** The end-to-end judge asks the LLM to generate an answer and score it in the same call. Self-scored faithfulness/relevance tends to be optimistic. Separating generation from evaluation with a stronger judge model is recommended for production measurement.
 
