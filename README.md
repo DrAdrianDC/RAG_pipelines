@@ -8,10 +8,12 @@ The project focuses on understanding how architectural decisions impact retrieva
 
 ## Goal
 
-- Benchmark RAG design decisions (chunking strategies, embedding models, retrieval methods) in a reproducible way
-- Compare multiple implementations of the same logical strategy (custom vs. LangChain cross-validation)
-- Measure retrieval quality with offline metrics: Recall@K, MRR, NDCG
-- Build a foundation for production-oriented RAG engineering
+The main objective of this repository is to:
+
+- Understand how different RAG components affect performance
+- Experiment with chunking and retrieval strategies
+- Compare embeddings and vector database options
+- Build a foundation for production-ready RAG systems
 
 ---
 
