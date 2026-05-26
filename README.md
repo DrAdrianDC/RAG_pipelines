@@ -133,6 +133,23 @@ pytest chunking/tests/ embeddings/tests/ vectorstores/tests/ -v
 
 ---
 
+## Next Steps
+
+Components already built locally, pending publication:
+
+- **Retrieval** — dense retriever pipeline on top of ChromaDB + embeddings
+- **Evaluation** — Recall@K, MRR, NDCG metrics and end-to-end generation evaluation
+- **Experiments** — runnable chunking and embedding benchmarks with result artifacts (CSV, plots)
+
+Components planned:
+
+- **Reranking** — cross-encoder reranking layer (e.g. `cross-encoder/ms-marco-MiniLM-L-6-v2`) on top of dense retrieval
+- **Context Construction** — strategies for assembling the final context window from retrieved chunks
+- **LLM Generation** — generation layer with prompt templates and LLM judge evaluation (Gemini / Groq)
+- **End-to-end benchmark** — full pipeline evaluation combining retrieval quality and generation quality metrics
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE)
