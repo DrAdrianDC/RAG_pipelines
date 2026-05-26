@@ -205,8 +205,9 @@ Plots: [`retrieval_comparison.png`](experiments/chunking_benchmark/results/retri
 Components planned:
 
 - **Context Construction** — strategies for assembling the final context window from retrieved chunks
-- **LLM Generation** — generation layer with prompt templates
-- **End-to-end benchmark results** — publish CSV + plots from a full run
+- **LLM Generation** — generation layer with prompt templates and LLM judge evaluation
+- **Embedding benchmark results** — publish comparison of MiniLM vs BGE vs PubMedBERT on FDA text
+- **Fixed-k benchmark run** — rerun with `--fixed-k 5` for a normalised Hit@k / nDCG table
 
 ---
 
