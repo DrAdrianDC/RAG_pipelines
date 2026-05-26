@@ -1,113 +1,99 @@
+# RAG Pipelines
 
+A modular experimental framework for evaluating and optimizing Retrieval-Augmented Generation (RAG) systems through reproducible offline evaluation workflows.
 
-# 📚 RAG Pipelines
-
-A modular framework for systematic RAG experimentation and evaluation.
-
-## Overview
-RAG_pipelines is an experimental framework designed to study and optimize Retrieval-Augmented Generation (RAG) systems through reproducible offline evaluation workflows.
-
-The project focuses on modular experimentation across:
-
-- Document ingestion
-- Chunking strategies
-- Embedding models
-- Vector retrieval
-- Reranking pipelines
-- Context construction
-- LLM-based generation
-- Retrieval and generation evaluation
-
-## Goal 
-
-The goal is to provide an AI Engineering-oriented environment for benchmarking RAG design decisions rather than building a single chatbot application.
-
-
-
-**The `datasets/` folder contains the ingestion-ready corpora used for RAG experimentation and evaluation workflows. These datasets are directly consumed by the pipeline for document ingestion, chunk generation, embedding computation, vector database indexing, retrieval benchmarking, and chunking strategy analysis.**
-
-The repository is designed so the same datasets can be reused consistently across different experiments involving:
-- chunking strategies,
-- embedding models,
-- retrieval methods,
-- rerankers,
-- and retrieval quality metrics such as Recall@K, MRR, and NDCG.
-
+The project focuses on understanding how architectural decisions impact retrieval quality, context relevance, and downstream generation performance — **not** on building a single end-user chatbot application.
 
 ---
 
-## Research Motivation
+## Goal
 
-Most RAG repositories focus on building end-user applications.
-
-This project focuses instead on understanding how architectural decisions impact retrieval quality, context relevance, and downstream generation performance through systematic experimentation and evaluation.
+- Benchmark RAG design decisions (chunking strategies, embedding models, retrieval methods) in a reproducible way
+- Compare multiple implementations of the same logical strategy (custom vs. LangChain cross-validation)
+- Measure retrieval quality with offline metrics: Recall@K, MRR, NDCG
+- Build a foundation for production-oriented RAG engineering
 
 ---
 
 ## Pipeline Architecture
 
-```text
-Data Ingestion
-      ↓
-Document Processing
-      ↓
-Chunking
-      ↓
-Embeddings
-      ↓
-Vector Database
-      ↓
-Retrieval
-      ↓
-Reranking
-      ↓
-Context Construction
-      ↓
-LLM Generation
-      ↓
-Evaluation
 ```
----
-
-# 🧩 Current Components
-
-## 📥 Data Ingestion
-
-Modular ingestion pipelines for acquiring, parsing, and preprocessing
-document collections used in retrieval experiments.
-
-Current ingestion workflows include:
-
-* PDF acquisition and document collection
-* OCR-based document extraction
-* Structured text preprocessing
-* JSONL corpus generation
-* Preparation of benchmark-ready datasets for downstream RAG evaluation
-
-The ingestion layer is designed to support reproducible dataset construction
-for chunking, retrieval, and retrieval-quality benchmarking experiments.
-
-# Next steps
-
-#### ✂️ Chunking Strategies
-Experiments with different ways of splitting text:
-- Fixed-size chunking
-- Recursive splitting
-- (More strategies in progress)
-
-#### 🔢 Embeddings
-Interface for testing different embedding models.
-
-#### 🧱 Vector Database
-Initial integrations with vector databases for similarity search.
-
-#### 🔍 Retrieval
-Basic retrieval pipelines using vector similarity search.
+Data Ingestion  →  Chunking  →  Embeddings  →  Vector Store
+                                                     ↓
+              Evaluation  ←  Generation  ←  Retrieval + Reranking
+```
 
 ---
 
+## Components
 
-# ⚙️ Installation
+### Data Ingestion (`data_ingestion/`)
+
+Modular ingestion pipelines for acquiring, parsing, and preprocessing document collections.
+
+- PDF acquisition and OCR-based extraction (Marker)
+- FDA biomarker structured text preprocessing
+- JSONL corpus generation (597-record benchmark corpus)
+
+### Datasets (`datasets/`)
+
+Benchmark-ready corpora consumed by all downstream pipeline stages.
+
+- **`datasets/fda_biomarkers/benchmark/fda_biomarkers.jsonl`** — 597 FDA drug-biomarker records used for chunking, embedding, retrieval, and evaluation experiments
+
+### Chunking (`chunking/`)
+
+8 chunking strategies benchmarked against the same FDA corpus:
+
+| Strategy | Implementation | Tokens |
+|---|---|---|
+| `fixed_512` | Custom word-boundary, token-budget | 512 |
+| `fixed_1024` | Custom word-boundary, token-budget | 1024 |
+| `recursive_512` | Custom Weaviate separator hierarchy | 512 |
+| `semantic` | Adaptive percentile threshold + NLTK | variable |
+| `structure_aware` | FDA 21 CFR section detection | ≤1024 |
+| `lc_fixed_512` | LangChain `TokenTextSplitter` | 512 |
+| `lc_fixed_1024` | LangChain `TokenTextSplitter` | 1024 |
+| `lc_recursive_512` | LangChain `RecursiveCharacterTextSplitter` | 512 |
+
+LangChain variants serve as cross-validation: if custom and LangChain implementations agree on retrieval metrics, the custom code is validated.
+
+Tests: `pytest chunking/tests/ -v` (no API keys or GPU required)
+
+### Embeddings (`embeddings/`)
+
+`EmbeddingModel` protocol with a `SentenceTransformerAdapter` backed by a lazy-loaded singleton cache. Supports swapping models without changing downstream code.
+
+Tested models: `all-MiniLM-L6-v2`, `BAAI/bge-small-en-v1.5`, `NeuML/pubmedbert-base-embeddings`
+
+Tests: `pytest embeddings/tests/ -v`
+
+### Vector Store (`vectorstores/`)
+
+ChromaDB collection lifecycle adapter: `get_chroma_collection`, `index_chunks`, `query_collection`. Designed to be extended with FAISS, Weaviate, or Pinecone backends.
+
+Tests: `pytest vectorstores/tests/ -v`
+
+### Retrieval (`retrieval/`)
+
+Dense retriever built on top of the vector store and embedding layers.
+
+### Evaluation (`evaluation/`)
+
+Retrieval quality metrics (Recall@K, MRR, NDCG) and end-to-end generation metrics.
+
+### Experiments (`experiments/`)
+
+Runnable benchmarks that wire all components together:
+
+- `experiments/chunking_benchmark/` — compares all 8 chunking strategies on retrieval quality
+- `experiments/embedding_benchmark/` — compares embedding models on the same retrieval task
+
+Results (CSV, JSON, plots) are gitignored and regenerated locally.
+
+---
+
+## Installation
 
 ```bash
 git clone https://github.com/DrAdrianDC/RAG_pipelines.git
@@ -115,6 +101,38 @@ cd RAG_pipelines
 
 python -m venv venv
 source venv/bin/activate
+
+# Install dependencies for the module you want to run, e.g.:
+pip install -r chunking/requirements.txt
 ```
 
-Install dependencies as needed per module.
+For LLM judge evaluation, copy `.env.example` to `.env` and add your API key:
+
+```bash
+cp .env.example .env
+# edit .env and set GEMINI_API_KEY or OPENAI_API_KEY
+```
+
+---
+
+## Running Tests
+
+```bash
+# All chunking tests (no API keys or GPU required)
+pytest chunking/tests/ -v
+
+# Embeddings tests
+pytest embeddings/tests/ -v
+
+# Vector store tests
+pytest vectorstores/tests/ -v
+
+# Full suite
+pytest chunking/tests/ embeddings/tests/ vectorstores/tests/ -v
+```
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE)
