@@ -6,7 +6,7 @@ A self-contained Python library that implements, benchmarks, and cross-validates
 
 ## Overview
 
-Chunking is the step that determines what text reaches the LLM. A well-formed chunk is **small enough for precise retrieval** and **complete enough to give the LLM full context**. This module implements the strategies described in the [Weaviate chunking guide](https://weaviate.io/blog/chunking-strategies-for-rag) and validated against the methodology of the [Vecta benchmark (2026)](https://www.runvecta.com/blog/we-benchmarked-7-chunking-strategies-most-advice-was-wrong).
+Chunking is the step that determines what text reaches the LLM. A well-formed chunk is **small enough for precise retrieval** and **complete enough to give the LLM full context**. 
 
 ### Corpus
 
